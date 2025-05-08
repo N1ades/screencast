@@ -82,6 +82,8 @@
 </template>
 
 <script>
+import { WebRTCStreamer } from '../webrtc';
+
 export default {
   name: 'VRCast',
   data() {
@@ -93,7 +95,8 @@ export default {
       stream: null,
       streamError: '',
       rtmpLink: 'rtmp://live.vrchat.com/app/your-stream-key', // Example RTMP link
-      copied: false
+      copied: false,
+      webrtcStreamer: null
     }
   },
   methods: {
@@ -104,12 +107,14 @@ export default {
           const mediaStream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
           this.stream = mediaStream;
           this.isStreaming = true;
+          // Send stream to server via WebRTC
+          this.webrtcStreamer = new WebRTCStreamer('wss://your-signaling-server'); // Replace with your signaling server URL
+          await this.webrtcStreamer.start(mediaStream);
           this.$nextTick(() => {
             if (this.$refs.previewVideo) {
               this.$refs.previewVideo.srcObject = this.stream;
             }
           });
-          // TODO: Integrate with VRChat streaming logic here
         } catch (err) {
           this.streamError = 'Failed to start screencast: ' + (err && err.message ? err.message : err);
           this.isStreaming = false;
@@ -119,6 +124,10 @@ export default {
         // Stop streaming
         if (this.stream) {
           this.stream.getTracks().forEach(track => track.stop());
+        }
+        if (this.webrtcStreamer) {
+          this.webrtcStreamer.stop();
+          this.webrtcStreamer = null;
         }
         this.isStreaming = false;
         this.stream = null;

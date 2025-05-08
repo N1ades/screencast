@@ -2,20 +2,10 @@
   <div class="donate-container">
     <div class="donate-card">
       <div class="donate-header">
-        <div class="donate-title">Support Me</div>
+        <div class="donate-title">Support Nyades</div>
         <div class="donate-subtitle">Choose your preferred donation method</div>
       </div>
       <div class="donate-methods">
-        <!-- MIR Card -->
-        <a class="donate-method donate-mir" tabindex="0" href="https://www.tbank.ru/rm/r_qiDJRIDVKx.vnXggUVAoS/rikeI60663/" target="_blank" rel="noopener noreferrer">
-          <div class="donate-icon bg-blue">
-            <img src="/src/assets/icons/mir-card.svg" alt="MIR Card" />
-          </div>
-          <div class="donate-info">
-            <div class="donate-method-title blue">MIR Card</div>
-            <div class="donate-method-desc blue">Payment Card (MIR)</div>
-          </div>
-        </a>
         <!-- Credit Card -->
         <div class="donate-method donate-credit" tabindex="0" @click="showKofi">
           <div class="donate-icon bg-purple">
@@ -26,16 +16,6 @@
             <div class="donate-method-desc purple">Visa & Mastercard</div>
           </div>
         </div>
-        <!-- DonationAlerts -->
-        <a class="donate-method donate-alerts" tabindex="0" href="https://www.donationalerts.com/r/nyades" target="_blank" rel="noopener noreferrer">
-          <div class="donate-icon bg-pink">
-            <img src="/src/assets/icons/donation-alerts.svg" alt="DonationAlerts" />
-          </div>
-          <div class="donate-info">
-            <div class="donate-method-title pink">DonationAlerts</div>
-            <div class="donate-method-desc pink">СБП (Система быстрых платежей)</div>
-          </div>
-        </a>
         <!-- Ko-fi -->
         <div class="donate-method donate-kofi" tabindex="0" @click="showKofi">
           <div class="donate-icon bg-blue">
@@ -46,6 +26,26 @@
             <div class="donate-method-desc blue">Support via PayPal</div>
           </div>
         </div>
+        <!-- DonationAlerts -->
+        <a class="donate-method donate-alerts" tabindex="0" href="https://www.donationalerts.com/r/nyades" target="_blank" rel="noopener noreferrer">
+          <div class="donate-icon bg-pink">
+            <img src="/src/assets/icons/donation-alerts.svg" alt="DonationAlerts" />
+          </div>
+          <div class="donate-info">
+            <div class="donate-method-title pink">СБП (Система быстрых платежей)</div>
+            <div class="donate-method-desc pink">DonationAlerts</div>
+          </div>
+        </a>
+        <!-- MIR Card -->
+        <a class="donate-method donate-mir" tabindex="0" href="https://www.tbank.ru/rm/r_qiDJRIDVKx.vnXggUVAoS/rikeI60663/" target="_blank" rel="noopener noreferrer">
+          <div class="donate-icon bg-blue">
+            <img src="/src/assets/icons/mir-card.svg" alt="MIR Card" />
+          </div>
+          <div class="donate-info">
+            <div class="donate-method-title blue">MIR Card</div>
+            <div class="donate-method-desc blue">Payment Card (MIR)</div>
+          </div>
+        </a>
         <!-- WeChat Pay -->
         <div class="donate-method donate-wechat" tabindex="0" @click="showQr('wechat')">
           <div class="donate-icon bg-green">
@@ -162,13 +162,13 @@ $donate-green-light: (#6EE7B7, 18%);
   text-align: center;
 }
 .donate-title {
-  color: #C4B5FD;
+  color: #ffffff;
   font-size: 2rem;
   font-family: 'Orbitron', sans-serif;
   font-weight: 400;
   line-height: 2.25rem;
-  margin-bottom: 0.5rem;
-  letter-spacing: 1.2px;
+  margin-bottom: 1.5rem;
+  letter-spacing: 1px;
 }
 .donate-subtitle {
   color: #A78BFA;
@@ -254,6 +254,7 @@ $donate-green-light: (#6EE7B7, 18%);
       &.blue { color: $donate-blue-light; }
       &.purple { color: $donate-purple-light; }
       &.green { color: $donate-green-light; }
+      opacity: 0.7;
     }
   }
 }

@@ -25,7 +25,9 @@
           </div>
           <div class="action-section">
             <button class="start-button" :class="{ streaming: isStreaming }" @click="toggleStream">
-              <img class="button-icon" :src="isStreaming ? '/src/assets/icons/stop-icon.svg' : '/src/assets/icons/button-icon.svg'" :alt="isStreaming ? 'Stop Icon' : 'Button Icon'" />
+              <img class="button-icon"
+                :src="isStreaming ? '/src/assets/icons/stop-icon.svg' : '/src/assets/icons/button-icon.svg'"
+                :alt="isStreaming ? 'Stop Icon' : 'Button Icon'" />
               <span>{{ isStreaming ? 'Stop Screencast' : 'Start Screencast' }}</span>
             </button>
           </div>
@@ -99,6 +101,14 @@ export default {
       webrtcStreamer: null
     }
   },
+  beforeUnmount() {
+    if (this.stream) {
+      this.stream.getTracks().forEach(track => track.stop());
+    }
+    if (this.webrtcStreamer) {
+      this.webrtcStreamer.stop();
+    }
+  },
   methods: {
     async toggleStream() {
       if (!this.isStreaming) {
@@ -108,7 +118,7 @@ export default {
           this.stream = mediaStream;
           this.isStreaming = true;
           // Send stream to server via WebRTC
-          this.webrtcStreamer = new WebRTCStreamer('wss://your-signaling-server'); // Replace with your signaling server URL
+          this.webrtcStreamer = new WebRTCStreamer((location.protocol === 'https:' ? 'wss://' : 'ws://') + location.host); // Replace with your signaling server URL
           await this.webrtcStreamer.start(mediaStream);
           this.$nextTick(() => {
             if (this.$refs.previewVideo) {
@@ -213,6 +223,7 @@ export default {
   margin-left: 16px;
   cursor: pointer;
 }
+
 .donate-btn:hover {
   background: linear-gradient(90deg, #DB2777 0%, #7C3AED 100%);
 }
@@ -378,18 +389,21 @@ export default {
   margin-top: 28px;
   text-align: center;
 }
+
 .rtmp-link-label {
   color: #C4B5FD;
   font-size: 15px;
   margin-bottom: 7px;
   letter-spacing: 0.5px;
 }
+
 .rtmp-link-row {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 10px;
 }
+
 .rtmp-link-input {
   width: 320px;
   max-width: 70vw;
@@ -402,6 +416,7 @@ export default {
   font-family: 'Orbitron', sans-serif;
   outline: none;
 }
+
 .copy-btn {
   display: flex;
   align-items: center;
@@ -416,14 +431,17 @@ export default {
   transition: background 0.2s;
   position: relative;
 }
+
 .copy-btn:active {
   background: linear-gradient(90deg, #DB2777 0%, #7C3AED 100%);
 }
+
 .copy-icon {
   width: 16px;
   height: 16px;
   margin-right: 7px;
 }
+
 .copied-feedback {
   color: #34D399;
   margin-left: 2px;
@@ -536,6 +554,7 @@ export default {
     font-size: 13px;
     padding: 6px 7px;
   }
+
   .copy-btn {
     font-size: 13px;
     padding: 6px 10px;

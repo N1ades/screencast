@@ -161,41 +161,17 @@ wss.on('connection', (ws, req) => {
             }
           };
           serverPeer.ontrack = (event) => {
-            if (ffmpeg) {
-              ffmpeg.stdin.end();
-              ffmpeg.kill();
-              ffmpeg = null;
-            }
             const track = event.track;
-            const receiver = event.receiver;
             if (track.kind === 'video') {
-              // Use Encoded Streams API if available
-              console.log(receiver.createEncodedStreams);
-              
-              const rtpStream = receiver.createEncodedStreams ? receiver.createEncodedStreams().readable : null;
-              if (rtpStream) {
-                ffmpeg = spawn('ffmpeg', [
-                  '-f', 'h264',
-                  '-i', 'pipe:0',
-                  '-c:v', 'copy',
-                  '-f', 'flv',
-                  RTMP_URL
-                ]);
-                ffmpeg.stderr.on('data', (data) => {
-                  console.error('ffmpeg stderr:', data.toString());
-                });
-                ffmpeg.on('close', (code) => {
-                  console.log('ffmpeg exited with code', code);
-                });
-                rtpStream.on('data', (chunk) => {
-                  ffmpeg.stdin.write(chunk);
-                });
-                rtpStream.on('end', () => {
-                  ffmpeg.stdin.end();
-                });
+              if (typeof track.onframe === 'function' || (track && 'onframe' in track)) {
+                logger.info('Receiving video: MediaStreamTrack.onframe is available');
+                track.onframe = (frame) => {
+                  // Example: log frame info
+                  logger.debug(`Received video frame: width=${frame.width}, height=${frame.height}, timestamp=${frame.timestamp}`);
+                  // TODO: process frame.data (Uint8ClampedArray) as needed
+                };
               } else {
-                logger.error(`Encoded streams API not available [${connectionId}]`);
-                ws.send(JSON.stringify({ type: 'error', error: 'Server does not support encoded streams API' }));
+                logger.error('MediaStreamTrack.onframe is not supported.');
               }
             }
           };
@@ -247,25 +223,28 @@ wss.on('connection', (ws, req) => {
           ws.send(JSON.stringify({ type: 'error', error: 'Unknown message type' }));
       }
     } catch (e) {
-      console.error('Error in message handling:', e);
+      logger.error(`Error in message handling [${connectionId}]:`, e);
       try {
         ws.send(JSON.stringify({ type: 'error', error: 'Internal error processing message' }));
       } catch (sendError) {
-        console.error('Error sending error message:', sendError);
+        logger.error(`Error sending error message [${connectionId}]:`, sendError);
       }
     }
   });
 
   ws.on('close', (code, reason) => {
-    console.log(`WebSocket closed with code ${code}, reason: ${reason}`);
+    logger.info(`WebSocket [${connectionId}] closed with code ${code}, reason: ${reason || 'none provided'}`);
     if (ws === broadcaster) {
+      logger.info(`Broadcaster [${connectionId}] disconnected`);
       broadcaster = null;
       if (ffmpeg) {
+        logger.debug(`Stopping ffmpeg process [${connectionId}]`);
         ffmpeg.stdin.end();
         ffmpeg.kill();
         ffmpeg = null;
       }
       if (serverPeer) {
+        logger.debug(`Closing server peer connection [${connectionId}]`);
         serverPeer.close();
         serverPeer = null;
       }
@@ -275,20 +254,74 @@ wss.on('connection', (ws, req) => {
           try {
             v.send(JSON.stringify({ type: 'broadcaster-disconnected' }));
           } catch (e) {
-            console.error('Error notifying viewer of broadcaster disconnect:', e);
+            logger.error(`Error notifying viewer of broadcaster disconnect [${connectionId}]:`, e);
           }
         }
       });
+    } else if (viewers.has(ws)) {
+      logger.info(`Viewer [${connectionId}] disconnected`);
     }
     viewers.delete(ws);
+    logger.debug(`Current connection count: ${viewers.size} viewers, broadcaster: ${broadcaster ? 'connected' : 'disconnected'}`);
   });
 });
 
 // Handle server errors
 server.on('error', (error) => {
-  console.error('HTTP Server Error:', error);
+  logger.error('HTTP Server Error:', error);
 });
 
+// Handle process termination
+// process.on('SIGINT', () => {
+//   logger.info('SIGINT received, shutting down...');
+//   wss.close(() => {
+//     logger.info('WebSocket server closed');
+//     server.close(() => {
+//       logger.info('HTTP server closed');
+//       logStream.end();
+//       process.exit(0);
+//     });
+//   });
+// });
+
+// process.on('SIGTERM', () => {
+//   logger.info('SIGTERM received, shutting down...');
+//   wss.close(() => {
+//     logger.info('WebSocket server closed');
+//     server.close(() => {
+//       logger.info('HTTP server closed');
+//       logStream.end();
+//       process.exit(0);
+//     });
+//   });
+// });
+
+// Track statistics periodically
+let connectionStats = {
+  totalConnections: 0,
+  activeViewers: 0,
+  peakConcurrent: 0,
+  broadcastTime: 0,
+  lastStatsTime: Date.now()
+};
+
+setInterval(() => {
+  const now = Date.now();
+  const activeViewers = viewers.size;
+  
+  // Update stats
+  connectionStats.activeViewers = activeViewers;
+  connectionStats.peakConcurrent = Math.max(connectionStats.peakConcurrent, activeViewers);
+  if (broadcaster) {
+    connectionStats.broadcastTime += (now - connectionStats.lastStatsTime);
+  }
+  connectionStats.lastStatsTime = now;
+  
+  // Log current status
+  logger.info(`Stats: ${activeViewers} active viewers, peak: ${connectionStats.peakConcurrent}, broadcast time: ${Math.floor(connectionStats.broadcastTime/1000)}s`);
+}, 60000); // Log stats every minute
+
 server.listen(PORT, () => {
-  console.log(`WebRTC signaling server running on :${PORT}`);
+  logger.info(`WebRTC signaling server running on port ${PORT}`);
+  logger.info(`Log level: ${LOG_LEVEL}, log file: ${LOG_FILE}`);
 });

@@ -305,6 +305,10 @@ $donate-green-light: (#6EE7B7, 18%);
   flex-direction: column;
   align-items: center;
   box-shadow: 0 4px 32px rgba(0,0,0,0.25);
+  min-width: 90vw;
+  
+  min-width: min(90vw, 450px);
+  max-width: 90vw;
 }
 .qr-modal-content img {
   max-width: 660px;

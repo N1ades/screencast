@@ -84,12 +84,20 @@ export default {
 .donate-container {
   min-height: 100vh;
   width: 100vw;
-  background: #111827;
+  /* VRCast background style */
+  background: url('/src/assets/background.svg'), linear-gradient(90deg, #111827 0%, rgb(0, 0, 0) 50%, #111827 100%);
+  background-size: cover;
+  background-position: top center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  background-blend-mode: difference;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
   padding: 2rem 0;
+  color: #fff;
+  font-family: 'Orbitron', 'Quicksand', sans-serif;
 }
 .donate-card {
   max-width: 448px;
@@ -98,26 +106,34 @@ export default {
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  padding: 2rem 1rem 1.5rem 1rem;
+  padding: 2.5rem 1.5rem 2rem 1.5rem;
+  /* Glassmorphism styles */
+  background: rgba(30, 27, 75, 0.35);
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.18);
+  backdrop-filter: blur(18px) saturate(180%);
+  -webkit-backdrop-filter: blur(18px) saturate(180%);
+  border: none;
 }
 .donate-header {
   margin-bottom: 2rem;
   text-align: center;
 }
 .donate-title {
-  color: #F9A8D4;
-  font-size: 2.25rem;
-  font-family: Quicksand, sans-serif;
+  color: #C4B5FD;
+  font-size: 2rem;
+  font-family: 'Orbitron', sans-serif;
   font-weight: 400;
   line-height: 2.25rem;
   margin-bottom: 0.5rem;
+  letter-spacing: 1.2px;
 }
 .donate-subtitle {
-  color: #9CA3AF;
+  color: #A78BFA;
   font-size: 1rem;
-  font-family: Quicksand, sans-serif;
+  font-family: 'Orbitron', sans-serif;
   font-weight: 400;
-  line-height: 1rem;
+  line-height: 1.2rem;
+  letter-spacing: 0.5px;
 }
 .donate-methods {
   display: flex;
@@ -127,18 +143,22 @@ export default {
 .donate-method {
   display: flex;
   align-items: center;
-  background: #1F2937;
+  /* Glassmorphism styles */
+  background: rgba(31, 41, 55, 0.35);
   border-radius: 12px;
-  border: 1px solid #374151;
   padding: 1rem 1.25rem;
   cursor: pointer;
-  transition: box-shadow 0.2s, transform 0.2s, border-color 0.2s;
+  transition: box-shadow 0.2s, transform 0.2s, background 0.2s;
   outline: none;
+  box-shadow: 0 2px 12px 0 rgba(139, 92, 246, 0.08);
+  border: none;
+  backdrop-filter: blur(8px) saturate(160%);
+  -webkit-backdrop-filter: blur(8px) saturate(160%);
 }
 .donate-method:hover, .donate-method:focus {
-  box-shadow: 0 4px 24px 0 rgba(249,168,212,0.15);
+  box-shadow: 0 4px 24px 0 rgba(196,181,253,0.15);
   transform: translateY(-2px) scale(1.025);
-  border-color: #F9A8D4;
+  background: rgba(59, 130, 246, 0.18);
 }
 .donate-icon {
   width: 48px;
@@ -148,6 +168,7 @@ export default {
   align-items: center;
   justify-content: center;
   margin-right: 1.25rem;
+  background: rgba(139, 92, 246, 0.07);
 }
 .bg-pink { background: rgba(236, 72, 153, 0.10); }
 .bg-blue { background: rgba(59, 130, 246, 0.10); }
@@ -164,29 +185,31 @@ export default {
 }
 .donate-method-title {
   font-size: 1rem;
-  font-family: Quicksand, sans-serif;
+  font-family: 'Orbitron', sans-serif;
   font-weight: 400;
   line-height: 1rem;
+  letter-spacing: 0.5px;
 }
 .pink { color: #F9A8D4; }
 .blue { color: #93C5FD; }
 .purple { color: #C4B5FD; }
 .green { color: #6EE7B7; }
 .donate-method-desc {
-  color: #9CA3AF;
+  color: #A78BFA;
   font-size: 0.875rem;
-  font-family: Quicksand, sans-serif;
+  font-family: 'Quicksand', sans-serif;
   font-weight: 400;
   line-height: 0.875rem;
 }
 .donate-footer {
   margin-top: 2rem;
   text-align: center;
-  color: #9CA3AF;
-  font-size: 0.875rem;
-  font-family: Quicksand, sans-serif;
+  color: #C4B5FD;
+  font-size: 0.95rem;
+  font-family: 'Orbitron', sans-serif;
   font-weight: 400;
-  line-height: 0.875rem;
+  line-height: 1.1rem;
+  letter-spacing: 0.5px;
 }
 .heart {
   color: #F9A8D4;

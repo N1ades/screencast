@@ -1,0 +1,46 @@
+@import url("https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700&display=swap");
+
+:root {
+  --primary-color: #8b5cf6;
+  --primary-light: #c4b5fd;
+  --success-color: #10b981;
+  --success-light: #34d399;
+  --border-color: rgba(139, 92, 246, 0.2);
+  --bg-overlay: rgba(0, 0, 0, 0.3);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family:
+    "Orbitron",
+    -apple-system,
+    Roboto,
+    Helvetica,
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  color: #fff;
+  background-color: #0f172a;
+}
+
+button {
+  cursor: pointer;
+  font-family:
+    "Orbitron",
+    -apple-system,
+    Roboto,
+    Helvetica,
+    sans-serif;
+  border: none;
+  background: none;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+}

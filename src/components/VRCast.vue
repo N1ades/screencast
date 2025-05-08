@@ -8,6 +8,9 @@
           <img class="logo-icon" src="/src/assets/icons/logo-icon.svg" alt="Logo Icon" />
           <div class="logo-text">VRCast</div>
         </div>
+        <div class="header-actions">
+          <a href="/donate" target="_blank" rel="noopener" class="donate-btn">Donate</a>
+        </div>
       </div>
     </div>
 
@@ -179,6 +182,30 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+}
+
+.donate-btn {
+  background: linear-gradient(90deg, #7C3AED 0%, #DB2777 100%);
+  color: #fff;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 15px;
+  padding: 8px 20px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 600;
+  transition: background 0.2s, box-shadow 0.2s;
+  box-shadow: 0 2px 8px rgba(139, 92, 246, 0.08);
+  border: none;
+  margin-left: 16px;
+  cursor: pointer;
+}
+.donate-btn:hover {
+  background: linear-gradient(90deg, #DB2777 0%, #7C3AED 100%);
 }
 
 .logo {

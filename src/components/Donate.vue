@@ -6,69 +6,84 @@
         <div class="donate-subtitle">Choose your preferred donation method</div>
       </div>
       <div class="donate-methods">
-        <!-- DonationAlerts -->
-        <div class="donate-method donate-alerts" tabindex="0">
-          <div class="donate-icon bg-pink">
-            <img src="/src/assets/icons/donation-alerts.svg" alt="DonationAlerts" />
-          </div>
-          <div class="donate-info">
-            <div class="donate-method-title pink">DonationAlerts</div>
-            <div class="donate-method-desc">СБП Payment System</div>
-          </div>
-        </div>
         <!-- MIR Card -->
-        <div class="donate-method donate-mir" tabindex="0">
+        <a class="donate-method donate-mir" tabindex="0" href="https://www.tbank.ru/rm/r_qiDJRIDVKx.vnXggUVAoS/rikeI60663/" target="_blank" rel="noopener noreferrer">
           <div class="donate-icon bg-blue">
             <img src="/src/assets/icons/mir-card.svg" alt="MIR Card" />
           </div>
           <div class="donate-info">
             <div class="donate-method-title blue">MIR Card</div>
-            <div class="donate-method-desc">Payment Card (MIR)</div>
+            <div class="donate-method-desc blue">Payment Card (MIR)</div>
           </div>
-        </div>
+        </a>
         <!-- Credit Card -->
-        <div class="donate-method donate-credit" tabindex="0">
+        <div class="donate-method donate-credit" tabindex="0" @click="showKofi">
           <div class="donate-icon bg-purple">
             <img src="/src/assets/icons/credit-card.svg" alt="Credit Card" />
           </div>
           <div class="donate-info">
-            <div class="donate-method-title purple">Credit Card</div>
-            <div class="donate-method-desc">Visa & Mastercard</div>
+            <div class="donate-method-title purple">Payment Card</div>
+            <div class="donate-method-desc purple">Visa & Mastercard</div>
           </div>
         </div>
+        <!-- DonationAlerts -->
+        <a class="donate-method donate-alerts" tabindex="0" href="https://www.donationalerts.com/r/nyades" target="_blank" rel="noopener noreferrer">
+          <div class="donate-icon bg-pink">
+            <img src="/src/assets/icons/donation-alerts.svg" alt="DonationAlerts" />
+          </div>
+          <div class="donate-info">
+            <div class="donate-method-title pink">DonationAlerts</div>
+            <div class="donate-method-desc pink">СБП (Система быстрых платежей)</div>
+          </div>
+        </a>
         <!-- Ko-fi -->
-        <div class="donate-method donate-kofi" tabindex="0">
+        <div class="donate-method donate-kofi" tabindex="0" @click="showKofi">
           <div class="donate-icon bg-blue">
             <img src="/src/assets/icons/kofi.svg" alt="Ko-fi" />
           </div>
           <div class="donate-info">
-            <div class="donate-method-title blue">Ko-fi</div>
-            <div class="donate-method-desc">Support via PayPal</div>
+            <div class="donate-method-title blue">PayPal</div>
+            <div class="donate-method-desc blue">Support via PayPal</div>
           </div>
         </div>
         <!-- WeChat Pay -->
-        <div class="donate-method donate-wechat" tabindex="0">
+        <div class="donate-method donate-wechat" tabindex="0" @click="showQr('wechat')">
           <div class="donate-icon bg-green">
             <img src="/src/assets/icons/wechat-pay.svg" alt="WeChat Pay" />
           </div>
           <div class="donate-info">
             <div class="donate-method-title green">WeChat Pay</div>
-            <div class="donate-method-desc">微信支付</div>
+            <div class="donate-method-desc green">微信支付</div>
           </div>
         </div>
         <!-- Alipay -->
-        <div class="donate-method donate-alipay" tabindex="0">
+        <div class="donate-method donate-alipay" tabindex="0" @click="showQr('alipay')">
           <div class="donate-icon bg-blue">
             <img src="/src/assets/icons/alipay.svg" alt="Alipay" />
           </div>
           <div class="donate-info">
             <div class="donate-method-title blue">Alipay</div>
-            <div class="donate-method-desc">支付宝</div>
+            <div class="donate-method-desc blue">支付宝</div>
           </div>
         </div>
       </div>
       <div class="donate-footer">
         Thank you for your support! <span class="heart">&lt;3</span>
+      </div>
+    </div>
+    <!-- QR Modal -->
+    <div v-if="qrModal" class="qr-modal" @click.self="closeQr">
+      <div class="qr-modal-content">
+        <img v-if="qrType==='wechat'" src="/src/assets/wechatqr.png" alt="WeChat QR" />
+        <img v-if="qrType==='alipay'" src="/src/assets/alipayqr.jpg" alt="Alipay QR" />
+        <button class="qr-modal-close" @click="closeQr">Close</button>
+      </div>
+    </div>
+    <!-- Ko-fi Modal -->
+    <div v-if="kofiModal" class="qr-modal" @click.self="closeKofi">
+      <div class="qr-modal-content kofi-modal-content">
+        <iframe id="kofiframe" src="https://ko-fi.com/nyades/?hidefeed=true&widget=true&embed=true&preview=true" style="border:none;width:100%;max-width:600px;padding:4px;background:#f9f9f9;" height="712" title="nyades"></iframe>
+        <button class="qr-modal-close" @click="closeKofi">Close</button>
       </div>
     </div>
   </div>
@@ -77,10 +92,38 @@
 <script>
 export default {
   name: 'DonatePage',
+  data() {
+    return {
+      qrModal: false,
+      qrType: null,
+      kofiModal: false,
+    };
+  },
+  methods: {
+    showQr(type) {
+      this.qrType = type;
+      this.qrModal = true;
+    },
+    closeQr() {
+      this.qrModal = false;
+      this.qrType = null;
+    },
+    showKofi() {
+      this.kofiModal = true;
+    },
+    closeKofi() {
+      this.kofiModal = false;
+    },
+  },
 }
 </script>
 
-<style scoped>
+<style scoped lang="scss">
+$donate-pink-light: (#F9A8D4, 18%);
+$donate-blue-light: (#93C5FD, 18%);
+$donate-purple-light: (#C4B5FD, 18%);
+$donate-green-light: (#6EE7B7, 18%);
+
 .donate-container {
   min-height: 100vh;
   width: 100vw;
@@ -107,12 +150,12 @@ export default {
   flex-direction: column;
   align-items: stretch;
   padding: 2.5rem 1.5rem 2rem 1.5rem;
-  /* Glassmorphism styles */
-  background: rgba(30, 27, 75, 0.35);
-  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.18);
+  /* Match VRCast glassmorphism styles, no shadow */
+  background: rgba(0, 0, 0, 0.3);
   backdrop-filter: blur(18px) saturate(180%);
   -webkit-backdrop-filter: blur(18px) saturate(180%);
   border: none;
+  outline: 1px solid rgba(139, 92, 246, 0.2);
 }
 .donate-header {
   margin-bottom: 2rem;
@@ -143,22 +186,76 @@ export default {
 .donate-method {
   display: flex;
   align-items: center;
-  /* Glassmorphism styles */
-  background: rgba(31, 41, 55, 0.35);
+  /* Glassmorphism styles, no shadow */
   border-radius: 12px;
   padding: 1rem 1.25rem;
   cursor: pointer;
   transition: box-shadow 0.2s, transform 0.2s, background 0.2s;
   outline: none;
-  box-shadow: 0 2px 12px 0 rgba(139, 92, 246, 0.08);
   border: none;
   backdrop-filter: blur(8px) saturate(160%);
   -webkit-backdrop-filter: blur(8px) saturate(160%);
-}
-.donate-method:hover, .donate-method:focus {
-  box-shadow: 0 4px 24px 0 rgba(196,181,253,0.15);
-  transform: translateY(-2px) scale(1.025);
-  background: rgba(59, 130, 246, 0.18);
+  &.donate-alerts {
+    background: linear-gradient(90deg, rgba(#F9A8D4, 0.18) 0%, rgba(#F9A8D4, 0.07) 100%);
+  }
+  &.donate-mir {
+    background: linear-gradient(90deg, rgba(#93C5FD, 0.18) 0%, rgba(#93C5FD, 0.07) 100%);
+  }
+  &.donate-credit {
+    background: linear-gradient(90deg, rgba(#C4B5FD, 0.18) 0%, rgba(#C4B5FD, 0.07) 100%);
+  }
+  &.donate-kofi {
+    background: linear-gradient(90deg, rgba(#93C5FD, 0.18) 0%, rgba(#93C5FD, 0.07) 100%);
+  }
+  &.donate-wechat {
+    background: linear-gradient(90deg, rgba(#6EE7B7, 0.18) 0%, rgba(#6EE7B7, 0.07) 100%);
+  }
+  &.donate-alipay {
+    background: linear-gradient(90deg, rgba(#93C5FD, 0.18) 0%, rgba(#93C5FD, 0.07) 100%);
+  }
+  &:hover, &:focus {
+    transform: translateY(-2px) scale(1.025);
+    &.donate-alerts {
+      background: linear-gradient(90deg, rgba(#F9A8D4, 0.28) 0%, rgba(#F9A8D4, 0.12) 100%);
+    }
+    &.donate-mir {
+      background: linear-gradient(90deg, rgba(#93C5FD, 0.28) 0%, rgba(#93C5FD, 0.12) 100%);
+    }
+    &.donate-credit {
+      background: linear-gradient(90deg, rgba(#C4B5FD, 0.28) 0%, rgba(#C4B5FD, 0.12) 100%);
+    }
+    &.donate-kofi {
+      background: linear-gradient(90deg, rgba(#93C5FD, 0.28) 0%, rgba(#93C5FD, 0.12) 100%);
+    }
+    &.donate-wechat {
+      background: linear-gradient(90deg, rgba(#6EE7B7, 0.28) 0%, rgba(#6EE7B7, 0.12) 100%);
+    }
+    &.donate-alipay {
+      background: linear-gradient(90deg, rgba(#93C5FD, 0.28) 0%, rgba(#93C5FD, 0.12) 100%);
+    }
+  }
+  .donate-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    .donate-method-title {
+      font-size: 1rem;
+      font-family: 'Quicksand', sans-serif;
+      font-weight: 400;
+      line-height: 1rem;
+      letter-spacing: 0.5px;
+    }
+    .donate-method-desc {
+      font-size: 0.875rem;
+      font-family: 'Quicksand', sans-serif;
+      font-weight: 400;
+      line-height: 0.875rem;
+      &.pink { color: $donate-pink-light; }
+      &.blue { color: $donate-blue-light; }
+      &.purple { color: $donate-purple-light; }
+      &.green { color: $donate-green-light; }
+    }
+  }
 }
 .donate-icon {
   width: 48px;
@@ -178,29 +275,6 @@ export default {
   max-width: 30px;
   max-height: 24px;
 }
-.donate-info {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-.donate-method-title {
-  font-size: 1rem;
-  font-family: 'Orbitron', sans-serif;
-  font-weight: 400;
-  line-height: 1rem;
-  letter-spacing: 0.5px;
-}
-.pink { color: #F9A8D4; }
-.blue { color: #93C5FD; }
-.purple { color: #C4B5FD; }
-.green { color: #6EE7B7; }
-.donate-method-desc {
-  color: #A78BFA;
-  font-size: 0.875rem;
-  font-family: 'Quicksand', sans-serif;
-  font-weight: 400;
-  line-height: 0.875rem;
-}
 .donate-footer {
   margin-top: 2rem;
   text-align: center;
@@ -213,6 +287,53 @@ export default {
 }
 .heart {
   color: #F9A8D4;
+}
+.qr-modal {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+.qr-modal-content {
+  background: #18181b;
+  border-radius: 12px;
+  padding: 2rem 1.5rem 1.5rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: 0 4px 32px rgba(0,0,0,0.25);
+}
+.qr-modal-content img {
+  max-width: 660px;
+  max-height: 620px;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+}
+.kofi-modal-content iframe {
+  width: 100%;
+  min-width: 320px;
+  max-width: 600px;
+  height: 712px;
+  background: #f9f9f9;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+}
+.qr-modal-close {
+  background: #C4B5FD;
+  color: #18181b;
+  border: none;
+  border-radius: 6px;
+  padding: 0.5rem 1.25rem;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.qr-modal-close:hover {
+  background: #A78BFA;
 }
 @media (max-width: 600px) {
   .donate-card {

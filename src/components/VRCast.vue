@@ -56,6 +56,7 @@
       <!-- Screencast Preview -->
       <div v-if="isStreaming && stream" class="preview-section">
         <video ref="previewVideo" autoplay muted playsinline class="preview-video"></video>
+        <canvas ref=previewCanvas class="preview-canvas"></canvas>
       </div>
 
       <!-- Stats Section -->
@@ -84,7 +85,9 @@
 </template>
 
 <script>
-import { WebRTCStreamer } from '../webrtc';
+import { MediaHandler } from '../lib/media-handler.ts';
+
+// import { WebRTCStreamer } from '../webrtc';
 
 export default {
   name: 'VRCast',
@@ -96,17 +99,15 @@ export default {
       isStreaming: false,
       stream: null,
       streamError: '',
-      rtmpLink: 'rtmp://live.vrchat.com/app/your-stream-key', // Example RTMP link
+      rtmpLink: 'rtmp://localhost/live/nyades', // Example RTMP link
       copied: false,
-      webrtcStreamer: null
+      requestAnimation: null,
     }
   },
   beforeUnmount() {
+    cancelAnimationFrame(this.requestAnimation);
     if (this.stream) {
       this.stream.getTracks().forEach(track => track.stop());
-    }
-    if (this.webrtcStreamer) {
-      this.webrtcStreamer.stop();
     }
   },
   methods: {
@@ -114,16 +115,75 @@ export default {
       if (!this.isStreaming) {
         this.streamError = '';
         try {
-          const mediaStream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
+          const mediaStream = await navigator.mediaDevices.getUserMedia({
+            audio: true,
+            video: true,
+          });
           this.stream = mediaStream;
           this.isStreaming = true;
-          // Send stream to server via WebRTC
-          this.webrtcStreamer = new WebRTCStreamer((location.protocol === 'https:' ? 'wss://' : 'ws://') + location.host); // Replace with your signaling server URL
-          await this.webrtcStreamer.start(mediaStream);
-          this.$nextTick(() => {
-            if (this.$refs.previewVideo) {
-              this.$refs.previewVideo.srcObject = this.stream;
-            }
+          // const mediaStream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
+
+          this.$nextTick(async () => {
+            const video = this.$refs.previewVideo;
+            const canvas = this.$refs.previewCanvas;
+
+
+            video.srcObject = mediaStream;
+            await this.$refs.previewVideo.play();
+
+            canvas.width = video.clientWidth;
+            canvas.height = video.clientHeight;
+
+            const ctx = canvas.getContext('2d');
+            const resize = () => {
+              canvas.width = video.clientWidth;
+              canvas.height = video.clientHeight;
+              ctx.fillStyle = '#FB3C4E';
+              ctx.font = '30px Akkurat';
+            };
+            window.addEventListener('resize', resize);
+
+            resize();
+
+            const updateCanvas = () => {
+              if (video.ended || video.paused) {
+                return;
+              }
+
+
+              ctx.drawImage(
+                video,
+                0,
+                0,
+                video.clientWidth,
+                video.clientHeight
+              );
+
+              const date = new Date();
+              const dateText = `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}.${date.getMilliseconds().toString().padStart(3, '0')}`;
+              ctx.fillText(`${dateText}`, 10, 50, canvas.width - 20);
+
+              this.requestAnimation = requestAnimationFrame(updateCanvas);
+            };
+            this.requestAnimation = requestAnimationFrame(updateCanvas);
+
+
+            this.mediaHandler = new MediaHandler();
+            this.mediaHandler.inputStream = mediaStream;
+
+            this.mediaHandler.setupStreamConnection(
+              'rtmp://localhost/live',
+              'nyades'
+            );
+
+            this.mediaHandler.streamHandler(canvas);
+
+            this.mediaHandler.addEventListener('stop', () => {
+              // setConnected(false);
+              // stopStreaming();
+            })
+
+
           });
         } catch (err) {
           this.streamError = 'Failed to start screencast: ' + (err && err.message ? err.message : err);
@@ -132,13 +192,13 @@ export default {
         }
       } else {
         // Stop streaming
-        if (this.stream) {
-          this.stream.getTracks().forEach(track => track.stop());
-        }
-        if (this.webrtcStreamer) {
-          this.webrtcStreamer.stop();
-          this.webrtcStreamer = null;
-        }
+        // if (this.stream) {
+        //   this.stream.getTracks().forEach(track => track.stop());
+        // }
+        // if (this.webrtcStreamer) {
+        //   this.webrtcStreamer.stop();
+        //   this.webrtcStreamer = null;
+        // }
         this.isStreaming = false;
         this.stream = null;
         this.streamError = '';
@@ -459,6 +519,20 @@ export default {
 }
 
 .preview-video {
+  width: 100%;
+  max-width: 720px;
+  border-radius: 12px;
+  outline: 2px solid #A78BFA;
+  background: #18181b;
+
+
+
+  z-index: 0;
+  position: absolute;
+  visibility: hidden;
+}
+
+.preview-canvas {
   width: 100%;
   max-width: 720px;
   border-radius: 12px;

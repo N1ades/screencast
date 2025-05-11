@@ -5,8 +5,8 @@
     <div class="header">
       <div class="header-content">
         <div class="logo">
-          <img class="logo-icon" src="/src/assets/icons/logo-icon.svg" alt="Logo Icon" />
-          <div class="logo-text">VRCast</div>
+          <img class="logo-icon" src="@/assets/icons/logo-icon.svg" alt="Logo Icon" />
+          <div class="logo-text">VrBroadcast</div> <span class="logo-subtext">Pre-alpha</span>
         </div>
         <div class="header-actions">
           <a href="/donate" target="_blank" rel="noopener" class="donate-btn">Donate</a>
@@ -21,15 +21,23 @@
         <div class="card-content">
           <div class="title-section">
             <h1 class="card-title">Stream to VRChat</h1>
-            <p class="card-subtitle">Share your screen in virtual reality</p>
+            <p class="card-subtitle">Share your {{ streamMode }} in virtual reality</p>
           </div>
           <div class="action-section">
             <button class="start-button" :class="{ streaming: isStreaming }" @click="toggleStream">
-              <img class="button-icon"
-                :src="isStreaming ? '/src/assets/icons/stop-icon.svg' : '/src/assets/icons/button-icon.svg'"
-                :alt="isStreaming ? 'Stop Icon' : 'Button Icon'" />
-              <span>{{ isStreaming ? 'Stop Screencast' : 'Start Screencast' }}</span>
+              <img v-if="isStreaming" class="button-icon" src="/src/assets/icons/stop-icon.svg" alt="Stop Icon" />
+              <img v-else class="button-icon" src="/src/assets/icons/button-icon.svg" alt="Button Icon" />
+              <span>
+                {{ isStreaming
+                  ? (streamMode === 'camera' ? 'Stop Broadcast' : 'Stop Screencast')
+                  : (streamMode === 'camera' ? 'Start Broadcast' : 'Start Screencast')
+                }}
+              </span>
             </button>
+
+            <!-- SwitchToggle component for Stream Mode -->
+            <SwitchToggle v-if="!isStreaming" v-model="streamMode" :modes="['camera', 'screen']"
+              @change="setStreamMode" />
           </div>
           <div class="status-indicator">
             <div class="status-dot" :style="{ background: isStreaming ? '#10B981' : '#F59E42' }"></div>
@@ -44,19 +52,12 @@
             <div class="rtmp-link-row">
               <input class="rtmp-link-input" :value="rtmpLink" readonly />
               <button class="copy-btn" @click="copyRtmpLink">
-                <!-- <img src="/src/assets/icons/copy-icon.svg" alt="Copy" class="copy-icon" /> -->
                 <span v-if="!copied">Copy</span>
                 <span v-else class="copied-feedback">Copied!</span>
               </button>
             </div>
           </div>
         </div>
-      </div>
-
-      <!-- Screencast Preview -->
-      <div v-if="isStreaming && stream" class="preview-section">
-        <video ref="previewVideo" autoplay muted playsinline class="preview-video"></video>
-        <canvas ref=previewCanvas class="preview-canvas"></canvas>
       </div>
 
       <!-- Stats Section -->
@@ -70,7 +71,7 @@
         <div class="stats-card">
           <div class="stats-content">
             <span class="stats-label">Quality</span>
-            <span class="stats-value">{{ quality }}</span>
+            <span class="stats-value">{{ quality }} <span class="stats-value-factor">{{ factor }}</span></span>
           </div>
         </div>
         <div class="stats-card">
@@ -80,129 +81,71 @@
           </div>
         </div>
       </div>
+      <!-- Screencast Preview -->
+      <div v-if="isStreaming" class="preview-section">
+        <!-- <video ref="previewVideo" autoplay muted playsinline class="preview-video"></video> -->
+        <canvas ref=canvas class="preview-canvas"></canvas>
+      </div>
+
     </div>
   </div>
 </template>
 
-<script>
+<script lang="ts">
+import { defineComponent } from 'vue';
+import { BroadcastManager } from '../lib/broadcast-manager.ts';
 import { MediaHandler } from '../lib/media-handler.ts';
+import SwitchToggle from './SwitchToggle.vue';
 
-// import { WebRTCStreamer } from '../webrtc';
-
-export default {
+export default defineComponent({
   name: 'VRCast',
+  components: { SwitchToggle },
   data() {
     return {
       viewers: 0,
-      quality: '1080p',
+      quality: '720p',
       latency: '45ms',
+      factor: '',
       isStreaming: false,
-      stream: null,
+      broadcastManager: null as BroadcastManager | null,
       streamError: '',
-      rtmpLink: 'rtmp://localhost/live/nyades', // Example RTMP link
+      rtmpLink: 'rtmp://live.nyades.dev/live/nyades', // Example RTMP link
       copied: false,
-      requestAnimation: null,
+      streamMode: 'screen', // Default mode
     }
   },
   beforeUnmount() {
-    cancelAnimationFrame(this.requestAnimation);
-    if (this.stream) {
-      this.stream.getTracks().forEach(track => track.stop());
-    }
+    this.broadcastManager?.destroy();
   },
   methods: {
     async toggleStream() {
-      if (!this.isStreaming) {
-        this.streamError = '';
-        try {
-          const mediaStream = await navigator.mediaDevices.getUserMedia({
-            audio: true,
-            video: true,
-          });
-          this.stream = mediaStream;
-          this.isStreaming = true;
-          // const mediaStream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
-
-          this.$nextTick(async () => {
-            const video = this.$refs.previewVideo;
-            const canvas = this.$refs.previewCanvas;
-
-
-            video.srcObject = mediaStream;
-            await this.$refs.previewVideo.play();
-
-            canvas.width = video.clientWidth;
-            canvas.height = video.clientHeight;
-
-            const ctx = canvas.getContext('2d');
-            const resize = () => {
-              canvas.width = video.clientWidth;
-              canvas.height = video.clientHeight;
-              ctx.fillStyle = '#FB3C4E';
-              ctx.font = '30px Akkurat';
-            };
-            window.addEventListener('resize', resize);
-
-            resize();
-
-            const updateCanvas = () => {
-              if (video.ended || video.paused) {
-                return;
-              }
-
-
-              ctx.drawImage(
-                video,
-                0,
-                0,
-                video.clientWidth,
-                video.clientHeight
-              );
-
-              const date = new Date();
-              const dateText = `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}.${date.getMilliseconds().toString().padStart(3, '0')}`;
-              ctx.fillText(`${dateText}`, 10, 50, canvas.width - 20);
-
-              this.requestAnimation = requestAnimationFrame(updateCanvas);
-            };
-            this.requestAnimation = requestAnimationFrame(updateCanvas);
-
-
-            this.mediaHandler = new MediaHandler();
-            this.mediaHandler.inputStream = mediaStream;
-
-            this.mediaHandler.setupStreamConnection(
-              'rtmp://localhost/live',
-              'nyades'
-            );
-
-            this.mediaHandler.streamHandler(canvas);
-
-            this.mediaHandler.addEventListener('stop', () => {
-              // setConnected(false);
-              // stopStreaming();
-            })
-
-
-          });
-        } catch (err) {
-          this.streamError = 'Failed to start screencast: ' + (err && err.message ? err.message : err);
-          this.isStreaming = false;
-          this.stream = null;
-        }
-      } else {
-        // Stop streaming
-        // if (this.stream) {
-        //   this.stream.getTracks().forEach(track => track.stop());
-        // }
-        // if (this.webrtcStreamer) {
-        //   this.webrtcStreamer.stop();
-        //   this.webrtcStreamer = null;
-        // }
-        this.isStreaming = false;
-        this.stream = null;
-        this.streamError = '';
+      this.streamError = '';
+      if (this.isStreaming) {
+        this.broadcastManager?.destroy()
+        return
       }
+      this.isStreaming = true;
+
+      this.$nextTick(async () => {
+        try {
+          this.broadcastManager = new BroadcastManager(this.$refs.canvas, this.streamMode);
+          this.broadcastManager.addEventListener('resize', ({ originalWidth, originalHeight, width, height }) => {
+
+            const factor = (width * height) / (originalWidth * originalHeight);
+
+            this.quality = `${width}x${height}`
+
+            this.factor = factor != 1 ? `${Math.round(factor * 100)}%` : ''
+          })
+          await this.broadcastManager.start();
+        } catch (error) {
+          this.streamError = 'Failed to start screencast: ' + (error && error.message ? error.message : error);
+        } finally {
+          this.isStreaming = false;
+          this.factor = '';
+          this.quality = '720p';
+        }
+      });
     },
     async copyRtmpLink() {
       try {
@@ -212,9 +155,12 @@ export default {
       } catch (e) {
         // fallback or error handling
       }
-    }
+    },
+    setStreamMode(mode) {
+      this.streamMode = mode;
+    },
   }
-}
+})
 </script>
 
 <style scoped>
@@ -314,6 +260,13 @@ export default {
   line-height: 16px;
 }
 
+.logo-subtext {
+  font-family: 'Quicksand', sans-serif;
+  margin-left: 4px;
+  font-size: 12px;
+  color: rgba(196, 181, 253, 0.8);
+}
+
 .header-icons {
   display: flex;
   gap: 24px;
@@ -385,7 +338,9 @@ export default {
 .action-section {
   display: flex;
   justify-content: center;
-  margin-bottom: 32px;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
 }
 
 .start-button {
@@ -513,7 +468,7 @@ export default {
 .preview-section {
   width: 100%;
   max-width: 768px;
-  margin-bottom: 32px;
+  margin-top: 32px;
   display: flex;
   justify-content: center;
 }
@@ -524,8 +479,6 @@ export default {
   border-radius: 12px;
   outline: 2px solid #A78BFA;
   background: #18181b;
-
-
 
   z-index: 0;
   position: absolute;
@@ -575,6 +528,12 @@ export default {
   line-height: 16px;
 }
 
+.stats-value-factor {
+  color: rgb(251, 191, 36);
+  font-size: 16px;
+  line-height: 16px;
+}
+
 /* Responsive styles */
 @media (max-width: 768px) {
   .cast-card {
@@ -615,6 +574,12 @@ export default {
     width: 100%;
     height: 48px;
     font-size: 14px;
+  }
+
+  .switch-btn {
+    width: 100px;
+    height: 36px;
+    font-size: 12px;
   }
 
   .status-indicator {

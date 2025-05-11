@@ -2,6 +2,7 @@ import '@dotenvx/dotenvx/config'
 import child_process from 'child_process';
 import url from 'url';
 import { createServer } from './lib/ssl.ts';
+import express from 'express';
 
 const { wss, app } = createServer();
 const transcode = process.env.SMART_TRANSCODE || true;
@@ -15,8 +16,15 @@ const transcode = process.env.SMART_TRANSCODE || true;
 //   if (err) throw err;
 //   console.log(`> Ready on port ${port}`);
 // });
+app.use('/assets', express.static('./dist/assets', {
+  maxAge: '1y', // cache for 1 year
+  immutable: true // tells browser the content won't change
+}));
+
+app.use(express.static('./dist'));
 
 
+app.use('/donate', express.static('./dist/index.html'));
 
 wss.on('connection', (ws, req) => {
   console.log('Streaming socket connected');

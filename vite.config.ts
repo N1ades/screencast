@@ -3,6 +3,8 @@ import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import {websocketProxyPlugin} from "./src/plugins/vite-plugin-ws-proxy.ts"
 
+import { fileURLToPath, URL } from 'node:url'
+
 const PROXY_TARGET = `localhost:${process.env.PORT ?? 3000}`
 
 // https://vite.dev/config/
@@ -28,5 +30,29 @@ export default defineConfig({
     //     rewrite: (path) => path,
     //   },
     // },
+  },  
+  resolve: {
+    alias: {
+      '@': fileURLToPath(new URL('./src', import.meta.url)),
+    },
+    extensions: [
+      '.js',
+      '.json',
+      '.jsx',
+      '.mjs',
+      '.ts',
+      '.tsx',
+      '.vue',
+    ],
+  },
+  css: {
+    preprocessorOptions: {
+      sass: {
+        api: 'modern-compiler',
+      },
+      scss: {
+        api: 'modern-compiler',
+      },
+    },
   },
 })

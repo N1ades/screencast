@@ -1,5 +1,6 @@
 <template>
   <div class="donate-container">
+    <HeaderBar />
     <div class="donate-card">
       <div class="donate-header">
         <div class="donate-title">Support Nyades</div>
@@ -90,8 +91,10 @@
 </template>
 
 <script>
+import HeaderBar from './HeaderBar.vue';
 export default {
   name: 'DonatePage',
+  components: { HeaderBar },
   data() {
     return {
       qrModal: false,
@@ -138,7 +141,7 @@ $donate-green-light: (#6EE7B7, 18%);
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
-  padding: 2rem 0;
+  padding: 5rem 0;
   color: #fff;
   font-family: 'Orbitron', 'Quicksand', sans-serif;
 }

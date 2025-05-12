@@ -3,6 +3,7 @@ import child_process from 'child_process';
 import url from 'url';
 import { createServer } from './lib/ssl.ts';
 import express from 'express';
+import { nanoid } from "nanoid";
 
 const { wss, app } = createServer();
 const transcode = process.env.SMART_TRANSCODE || true;
@@ -83,7 +84,7 @@ wss.on('connection', (ws, req) => {
     '-bufsize', '1000',
     '-f', 'flv',
 
-    rtmpUrl
+    `rtmp://localhost/live/${key}`,
   ]);
   console.log('FFmpeg command:', ffmpeg.spawnargs.join(' '));
 

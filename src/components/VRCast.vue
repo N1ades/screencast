@@ -1,19 +1,7 @@
 <!-- VRCast.vue -->
 <template>
   <div class="vrcast-container">
-    <!-- Header -->
-    <div class="header">
-      <div class="header-content">
-        <div class="logo">
-          <img class="logo-icon" src="@/assets/icons/logo-icon.svg" alt="Logo Icon" />
-          <div class="logo-text">VrBroadcast</div> <span class="logo-subtext">Pre-alpha</span>
-        </div>
-        <div class="header-actions">
-          <a href="/donate" target="_blank" rel="noopener" class="donate-btn">Donate</a>
-        </div>
-      </div>
-    </div>
-
+    <HeaderBar />
     <!-- Main Content -->
     <div class="main-content">
       <!-- Cast Card -->
@@ -68,12 +56,14 @@
             <span class="stats-value">{{ viewers }}</span>
           </div>
         </div>
-        <div class="stats-card">
+        <div v-if="isStreaming" class="stats-card">
           <div class="stats-content">
             <span class="stats-label">Quality</span>
             <span class="stats-value">{{ quality }} <span class="stats-value-factor">{{ factor }}</span></span>
           </div>
         </div>
+        <QualitySelector v-else class="stats-card" v-model="qualityPreset" />
+
         <div class="stats-card">
           <div class="stats-content">
             <span class="stats-label">Latency</span>
@@ -93,17 +83,20 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
+import HeaderBar from './HeaderBar.vue';
 import { BroadcastManager } from '../lib/broadcast-manager.ts';
 import { MediaHandler } from '../lib/media-handler.ts';
 import SwitchToggle from './SwitchToggle.vue';
+import QualitySelector from './QualitySelector.vue';
 
 export default defineComponent({
   name: 'VRCast',
-  components: { SwitchToggle },
+  components: { HeaderBar, SwitchToggle, QualitySelector },
   data() {
     return {
-      viewers: 0,
+      viewers: '0/30',
       quality: '720p',
+      qualityPreset: '720p',
       latency: '45ms',
       factor: '',
       isStreaming: false,
@@ -159,11 +152,14 @@ export default defineComponent({
     setStreamMode(mode) {
       this.streamMode = mode;
     },
+    setQuality(q) {
+      this.quality = q;
+    },
   }
 })
 </script>
 
-<style scoped>
+<style>
 /* Base styles */
 * {
   margin: 0;
@@ -363,6 +359,11 @@ export default defineComponent({
   background: linear-gradient(90deg, #DB2777 0%, #7C3AED 100%);
 }
 
+.start-button:hover {
+  filter: brightness(1.08);
+  box-shadow: 0 2px 12px rgba(139, 92, 246, 0.18);
+}
+
 .button-icon {
   width: 12px;
   height: 16px;
@@ -445,6 +446,11 @@ export default defineComponent({
   font-family: 'Orbitron', sans-serif;
   transition: background 0.2s;
   position: relative;
+}
+
+.copy-btn:hover {
+  filter: brightness(1.08);
+  box-shadow: 0 2px 8px rgba(139, 92, 246, 0.12);
 }
 
 .copy-btn:active {

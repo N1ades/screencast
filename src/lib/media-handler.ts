@@ -40,8 +40,7 @@ export class MediaHandler {
 
     setupStreamConnection(streamUrl, streamKey, onOpen) {
         const settings = MediaHandler.getRecorderSettings();
-        const protocol = window.location.protocol.replace('http', 'ws');
-        const wsUrl = new URL(`${protocol}//${window.location.host}/rtmp`);
+        const wsUrl = new URL(`${window.location.protocol.replace('http', 'ws')}//${window.location.host}/rtmp`);
         wsUrl.searchParams.set('video', settings.video);
         wsUrl.searchParams.set('audio', settings.audio);
         if (streamUrl) wsUrl.searchParams.set('url', streamUrl);

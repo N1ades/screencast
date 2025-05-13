@@ -97,16 +97,34 @@ export class BroadcastManager extends EventListener<'resize' | 'link' | 'error'>
         transferHandler.start();
 
 
-        const customRAF = (callback: () => void) => {
-            // requestAnimationFrame(callback)
-            setTimeout(callback, 1000 / 60); // 60 FPS
-        };
+        let worker = new Worker("/worker.js");
+
+        // Send a message to the worker to start the interval
+        worker.postMessage("start");
+
+        // Listen for messages from the worker
+
+        // const customRAF = (callback: () => void) => {
+        //     // requestAnimationFrame(callback)
+        //     setTimeout(callback, 1000 / 60); // 60 FPS
+        // };
         // const customRAF = requestAnimationFrame
         let frames = 0;
         const interval = setInterval(() => {
             console.log(`FPS: ${frames}`);
             frames = 0;
         }, 1000);
+
+
+
+        const customRAF = (callback: () => void) => {
+            const tick = () => {
+                callback();
+                worker.removeEventListener('message', tick);
+            }
+
+            worker.addEventListener('message', tick);
+        };
 
         await new Promise<void>((resolve) => customRAF(() => resolve()));
         while (!this.destroyed) {
@@ -118,13 +136,14 @@ export class BroadcastManager extends EventListener<'resize' | 'link' | 'error'>
                 this.canvas.width,
                 this.canvas.height
             );
-            const date = new Date();
-            const dateText = `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}.${date.getMilliseconds().toString().padStart(3, '0')}`;
-            ctx.fillText(`${dateText}`, 10, 50, this.canvas.width - 20);
+            // const date = new Date();
+            // const dateText = `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}.${date.getMilliseconds().toString().padStart(3, '0')}`;
+            // ctx.fillText(`${dateText}`, 10, 50, this.canvas.width - 20);
 
             await new Promise<void>((resolve) => customRAF(() => resolve()));
         }
 
+        worker.terminate()
         clearInterval(interval);
 
         this.video.removeEventListener('resize', resize);

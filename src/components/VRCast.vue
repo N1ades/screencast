@@ -1,7 +1,7 @@
 <!-- VRCast.vue -->
 <template>
   <div class="vrcast-container">
-    <HeaderBar />
+    <HeaderBar :externalLinks="isStreaming" />
     <!-- Main Content -->
     <div class="main-content">
       <!-- Cast Card -->
@@ -96,27 +96,30 @@ export default defineComponent({
       viewers: '0/30',
       quality: '720p',
       qualityPreset: '720p',
-      latency: '~1-5s',
+      latency: '1-5s',
       factor: '',
       isStreaming: false,
       broadcastManager: null as BroadcastManager | null,
       streamError: '',
-      rtmpLink: null,
+      rtmpLink: '',
       copied: false,
       streamMode: 'screen', // Default mode
     }
   },
   beforeUnmount() {
+    window.removeEventListener('beforeunload', this.preventClose);
     this.broadcastManager?.destroy();
   },
   methods: {
     async toggleStream() {
       this.streamError = '';
       if (this.isStreaming) {
+        window.removeEventListener('beforeunload', this.preventClose);
         this.broadcastManager?.destroy()
         return
       }
       this.isStreaming = true;
+      window.addEventListener('beforeunload', this.preventClose);
 
       this.$nextTick(async () => {
         try {
@@ -132,6 +135,10 @@ export default defineComponent({
 
             this.factor = factor != 1 ? `${Math.round(factor * 100)}%` : ''
           })
+          this.broadcastManager.addEventListener('error', (error) => {
+            this.streamError = error.message;
+          })
+
           await this.broadcastManager.start();
         } catch (error) {
           this.streamError = 'Failed to start screencast: ' + (error && error.message ? error.message : error);
@@ -151,11 +158,12 @@ export default defineComponent({
         // fallback or error handling
       }
     },
-    setStreamMode(mode) {
+    setStreamMode(mode: string) {
       this.streamMode = mode;
     },
-    setQuality(q) {
-      this.quality = q;
+    preventClose(event) {
+      event.preventDefault();
+      event.returnValue = '';
     },
   }
 })

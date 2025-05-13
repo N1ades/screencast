@@ -1,5 +1,3 @@
-import type { off } from "process";
-
 export class EventListener<EventListenerName> {
     private eventListeners: any = {};
     addEventListener = (type: EventListenerName, listener: (...args: any[]) => any) => {

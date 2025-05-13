@@ -19,7 +19,7 @@ const resizeToMaxPixels = (originalWidth: number, originalHeight: number, maxPix
 }
 
 
-export class BroadcastManager extends EventListener<'resize' | 'link'> {
+export class BroadcastManager extends EventListener<'resize' | 'link' | 'error'> {
     canvas: HTMLCanvasElement; // video preview
     streamMode: string;
     video: HTMLVideoElement;
@@ -85,7 +85,15 @@ export class BroadcastManager extends EventListener<'resize' | 'link'> {
 
         const transferHandler = new TransferHandler(this.canvas, this.mediaStream.getAudioTracks());
         transferHandler.on('open', (event) => {
+            console.log('TransferHandler opened');
             this._callEventListeners('link', event.rtmpLink)
+        })
+        transferHandler.on('close', () => {
+            console.log('TransferHandler closed');
+        })
+        transferHandler.on('error', (event) => {
+            console.error('TransferHandler error:', event);
+            this._callEventListeners('error', event);
         })
 
         transferHandler.start();

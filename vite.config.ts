@@ -20,7 +20,7 @@ export default defineConfig({
   ],
 
   server: {
-    allowedHosts: ['disk-dev.owlet.dev'],
+    allowedHosts: ['devcast.nyades.dev'],
     port: process.env.CLIENT_PORT ? parseInt(process.env.CLIENT_PORT) : 3000,
     // proxy: {
     //   // Match all paths that contain `/someid/files/`

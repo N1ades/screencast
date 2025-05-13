@@ -1,12 +1,14 @@
 import { WebsocketManager } from "./websocket-manager";
 import { EventListener } from "./event-listener";
+import { supportedMime } from "./supported-mime";
 
-export class TransferHandler extends EventListener<'open' | 'stop' | 'close'> {
+export class TransferHandler extends EventListener<'error' | 'destroy' | 'open' | 'stop' | 'close'> {
     audioTracks: MediaStreamTrack[];
-    mediaRecorder: MediaRecorder;
+    mediaRecorder?: MediaRecorder;
     ws: WebsocketManager;
     secret: string | null;
     canvas: HTMLCanvasElement;
+    videoOutputStream?: MediaStream;
     constructor(canvas: HTMLCanvasElement, audioTracks: MediaStreamTrack[]) {
         super();
         this.audioTracks = audioTracks;
@@ -21,7 +23,7 @@ export class TransferHandler extends EventListener<'open' | 'stop' | 'close'> {
 
     static getRecorderSettings() {
         const settings: { format?: string; video?: string; audio?: string } = {};
-        if (MediaRecorder.isTypeSupported('video/mp4')) {
+        if (MediaRecorder.isTypeSupported('video/mp4;codecs=h264')) {
             settings.format = 'mp4';
             settings.video = 'h264';
             settings.audio = 'aac';
@@ -55,60 +57,100 @@ export class TransferHandler extends EventListener<'open' | 'stop' | 'close'> {
             secret: this.secret
         }))
         const messageEvent = await this.ws.onceMessage({ timeoutDelay: 3000 });
+        console.log('once messageEvent', messageEvent);
+
         const { secret, code } = JSON.parse(messageEvent.data);
 
         this.secret = secret;
         localStorage.setItem('secret', secret);
 
         this._callEventListeners('open', {
-            rtmpLink: `rtmp://${window.location.host}/live/${code}`,
+            rtmpLink: `rtmp://rtmp.nyades.dev/live/${code}`,
             secret,
             code
         });
         this.ws.addEventListener('close', () => {
-            this.destroy();
+            this.close();
         });
 
-        this.ws.addEventListener('message', (message) => {
-            console.log('Info from server:', message);
-        });
+        // this.ws.addEventListener('message', (message) => {
+        //     console.log('Info from server:', message);
+        // });
 
-        const videoOutputStream = this.canvas.captureStream(30);
+        this.videoOutputStream = this.canvas.captureStream(30);
+
+        // Log supported video codecs
+        const videoCodecs = ['vp8', 'vp9', 'h264', 'av1'];
+        videoCodecs.forEach(codec => {
+            const mimeType = `video/webm;codecs=${codec}`;
+            if (MediaRecorder.isTypeSupported(mimeType)) {
+                console.log(`Supported video codec: ${mimeType}`);
+            }
+        });
+        // Log supported audio codecs
+        const audioCodecs = ['opus', 'aac', 'vorbis', 'mp3'];
+        audioCodecs.forEach(codec => {
+            const mimeType = `audio/webm;codecs=${codec}`;
+            if (MediaRecorder.isTypeSupported(mimeType)) {
+                console.log(`Supported audio codec: ${mimeType}`);
+            }
+        });
 
         const outputStream = new MediaStream();
 
-        [...videoOutputStream.getTracks(), ...this.audioTracks].forEach((track: MediaStreamTrack) => {
+        [...this.videoOutputStream.getVideoTracks(), ...this.audioTracks].forEach((track: MediaStreamTrack) => {
             outputStream.addTrack(track);
         })
 
-        const mediaRecorder = new MediaRecorder(outputStream, {
-            mimeType: TransferHandler.getRecorderMimeType(),
+        const codecs = [
+            {
+                mime: 'video/webm;codecs=h264,opus',
+                video: 'h264',
+                audio: 'opus',
+            },
+        ]
+
+        this.mediaRecorder = new MediaRecorder(outputStream, {
+            mimeType: codecs[0].mime,
             videoBitsPerSecond: 3_000_000, // 3 Mbps
             audioBitsPerSecond: 128_000,    // 128 Kbps
         });
 
-        mediaRecorder.addEventListener('dataavailable', (event) => {
-            console.log('Data available:', event.data);
-            
+        console.log(supportedMime);
+
+
+        this.mediaRecorder.addEventListener('dataavailable', (event) => {
+            // console.log('Data available:', event.data);
             this.ws.send(event.data);
         });
 
-        mediaRecorder.addEventListener('stop', () => {
-            this._callEventListeners('stop');
-            this.ws.close();
+        this.mediaRecorder.addEventListener('error', (event) => {
+            console.error('MediaRecorder error:', event);
+            this._callEventListeners('error', event);
         });
 
-        mediaRecorder.start(1000);
+        // this.mediaRecorder.addEventListener('stop', () => {
+        //     // this._callEventListeners('stop');
+        //     // this.ws.destroy();
+        // });
+
+        this.mediaRecorder.start(1000);
+    }
+
+    close = () => {
+        this.videoOutputStream?.getTracks().forEach((track: MediaStreamTrack) => {
+            track.stop();
+        });
+        delete this.videoOutputStream;
+        this.mediaRecorder?.stop();
+        delete this.mediaRecorder;
+        this._callEventListeners('close');
     }
 
     destroy() {
-        if (this.mediaRecorder && this.mediaRecorder.state === 'recording') {
-            this.mediaRecorder.stop();
-        }
-        if (this.ws) {
-            this.ws.close();
-        }
-        this._callEventListeners('close');
+        this.close();
+        this.ws?.destroy();
+        this._callEventListeners('destroy');
     }
 }
 

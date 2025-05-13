@@ -25,7 +25,7 @@ wss.on('connection', async (ws: WebSocket) => {
   const data = await ws.onceMessage({ timeoutDelay: 3000 });
   let { secret, video, audio } = JSON.parse(data.toString());
 
-  console.log({ secret, video, audio });
+  console.log('new connection', { secret, video, audio });
 
   let code = secret && codeBySecret.get(secret);
   secret = (code && secret) ?? nanoid();
@@ -35,7 +35,7 @@ wss.on('connection', async (ws: WebSocket) => {
     codeBySecret.set(secret, code);
   }
 
-
+  
   ws.send(JSON.stringify({ secret, code }));
 
   const videoCodec =

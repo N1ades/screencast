@@ -6,8 +6,14 @@
         <div class="logo-text">VrBroadcast</div> <span class="logo-subtext">Pre-alpha</span>
       </router-link>
       <div class="header-actions">
-        <router-link class="nav-link" to="/contact">Contact Me</router-link>
-        <a href="/donate" target="_blank" rel="noopener" class="donate-btn">Donate</a>
+        <template v-if="externalLinks">
+          <a class="nav-link" href="/contact" target="_blank" rel="noopener">Contact Me</a>
+          <a href="/donate" class="donate-btn" target="_blank" rel="noopener">Donate</a>
+        </template>
+        <template v-else>
+          <router-link class="nav-link" to="/contact">Contact Me</router-link>
+          <router-link class="donate-btn" to="/donate">Donate</router-link>
+        </template>
       </div>
     </div>
   </div>
@@ -17,6 +23,12 @@
 import { defineComponent } from 'vue';
 export default defineComponent({
   name: 'HeaderBar',
+  props: {
+    externalLinks: {
+      type: Boolean,
+      default: false,
+    },
+  },
 });
 </script>
 

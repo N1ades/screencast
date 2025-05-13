@@ -1,6 +1,18 @@
 import { EventListener } from "./event-listener";
 
-export class WebsocketManager extends EventListener<'reconnect' | 'open' | 'message' | 'error' | 'close'> {
+
+
+/**
+ * EventTypes represents the possible events that can be emitted by the WebsocketManager.
+ * - 'open': Triggered when the WebSocket connection is successfully opened.
+ * - 'message': Triggered when a message is received from the WebSocket.
+ * - 'error': Triggered when an error occurs in the WebSocket.
+ * - 'close': Triggered when the WebSocket connection is closed.
+ * - 'reconnect': Triggered when the WebSocket attempts to reconnect.
+ */
+type EventTypes = 'reconnect' | 'open' | 'message' | 'error' | 'close';
+
+export class WebsocketManager extends EventListener<EventTypes> {
     open: boolean;
     url: any;
     ws?: WebSocket;
@@ -13,11 +25,8 @@ export class WebsocketManager extends EventListener<'reconnect' | 'open' | 'mess
     }
 
     reconnectTimeout = () => setTimeout(() => {
-        if (this.ws) {
-            this.ws.close();
-            delete this.ws;
-        }
-        this._callEventListeners("reconnect");
+        this._close();
+        // this._callEventListeners("reconnect");
         console.log('reconnecting websocket');
         this.connect();
     }, 5000 + 2000)
@@ -32,24 +41,23 @@ export class WebsocketManager extends EventListener<'reconnect' | 'open' | 'mess
     connect = () => {
         console.log('create WebSocket');
 
-        this.ws = new WebSocket(this.url);
+        const ws = new WebSocket(this.url);
+        this.heartbeat();
 
-        this.ws.addEventListener("error", (event) => {
-            this.heartbeat();
-            console.error(event);
-
+        ws.addEventListener("error", (event) => {
+            console.error("WebSocket error observed:", event);
             this._callEventListeners("error", event);
         });
 
-        this.ws.addEventListener("open", (event) => {
+        ws.addEventListener("open", (event) => {
             console.log("open");
+            this.ws = ws;
             this.heartbeat();
-
             this._callEventListeners("open", event);
         });
 
-        this.ws.addEventListener("message", (event) => {
-
+        ws.addEventListener("message", (event) => {
+            
             if (typeof event.data !== 'string') {
                 console.error('unsupported messageType');
                 return;
@@ -59,21 +67,47 @@ export class WebsocketManager extends EventListener<'reconnect' | 'open' | 'mess
                 this.heartbeat();
                 return;
             }
+            console.log("message", event.data);
 
             this._callEventListeners("message", event);
         });
 
-        this.ws.addEventListener("close", (event) => {
+        ws.addEventListener("close", (event) => {
             console.log('close');
-            if (this.open) {
-                console.log('wait for reconnect');
-                return // wait for reconnect
-            }
-
-            this._callEventListeners("reconnect", event);
+            this._close();
             this._callEventListeners("close", event);
+            if (this.open) {
+                this.heartbeat();
+                // this._callEventListeners("reconnect", event);
+                console.log('wait for reconnect');
+            }
         });
     }
+
+
+
+    send = (data: Parameters<WebSocket['send']>[0]) => {
+        if (!this.ws) {
+            console.error('send: WebSocket not connected');
+            return
+        }
+
+        this.ws.send(data);
+    }
+
+    destroy = () => {
+        console.log('WebSocketManager destroy');
+        this.open = false;
+        clearTimeout(this.pingTimeout);
+        this._close();
+    }
+
+    _close = () => {
+        const ws = this.ws;
+        delete this.ws;
+        ws?.OPEN && ws.close();
+    }
+
 
     onceMessage = ({ timeoutDelay }: { timeoutDelay: number }) => {
         return new Promise<MessageEvent>((resolve, reject) => {
@@ -92,7 +126,7 @@ export class WebsocketManager extends EventListener<'reconnect' | 'open' | 'mess
 
             let timeout = setTimeout(() => {
                 reject(new Error('Timeout waiting for message'));
-                this.close();
+                this.destroy();
                 this.off('close', reject);
                 this.off('message', message);
             }, timeoutDelay);
@@ -100,23 +134,5 @@ export class WebsocketManager extends EventListener<'reconnect' | 'open' | 'mess
             this.once('close', reject);
             this.once('message', message);
         })
-    }
-
-
-    send = (data) => {
-        this.ws.send(data);
-    }
-
-    close = () => {
-        this.ws.close();
-        delete this.ws;
-        clearTimeout(this.pingTimeout);
-        this.open = false;
-        this.eventListeners = {};
-
-    }
-
-    _close = () => {
-        this.ws.close();
     }
 }

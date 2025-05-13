@@ -7,10 +7,12 @@
       </router-link>
       <div class="header-actions">
         <template v-if="externalLinks">
+          <a class="nav-link" href="https://disk.nyades.dev" target="_blank" rel="noopener">Realtime file sharing</a>
           <a class="nav-link" href="/contact" target="_blank" rel="noopener">Contact Me</a>
           <a href="/donate" class="donate-btn" target="_blank" rel="noopener">Donate</a>
         </template>
         <template v-else>
+          <a class="nav-link" href="https://disk.nyades.dev" rel="noopener">Realtime file sharing</a>
           <router-link class="nav-link" to="/contact">Contact Me</router-link>
           <router-link class="donate-btn" to="/donate">Donate</router-link>
         </template>
@@ -43,6 +45,7 @@ export default defineComponent({
   left: 0;
   z-index: 10;
 }
+
 .header-content {
   max-width: 1280px;
   height: 100%;
@@ -52,10 +55,12 @@ export default defineComponent({
   justify-content: space-between;
   align-items: center;
 }
+
 .header-actions {
   display: flex;
   align-items: center;
 }
+
 .donate-btn {
   background: linear-gradient(90deg, #7C3AED 0%, #DB2777 100%);
   color: #fff;
@@ -71,30 +76,36 @@ export default defineComponent({
   margin-left: 16px;
   cursor: pointer;
 }
+
 .donate-btn:hover {
   background: linear-gradient(90deg, #DB2777 0%, #7C3AED 100%);
 }
+
 .logo {
   display: flex;
   align-items: center;
 }
+
 .logo-icon {
   width: 30px;
   height: 24px;
   position: relative;
 }
+
 .logo-text {
   margin-left: 8px;
   font-size: 16px;
   letter-spacing: 0.8px;
   line-height: 16px;
 }
+
 .logo-subtext {
   font-family: 'Quicksand', sans-serif;
   margin-left: 4px;
   font-size: 12px;
   color: rgba(196, 181, 253, 0.8);
 }
+
 .nav-link {
   color: #fff;
   font-family: 'Orbitron', sans-serif;
@@ -104,6 +115,7 @@ export default defineComponent({
   margin-right: 16px;
   cursor: pointer;
 }
+
 .nav-link:hover {
   text-decoration: underline;
 }

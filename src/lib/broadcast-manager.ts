@@ -25,7 +25,6 @@ export class BroadcastManager extends EventListener<'resize' | 'link' | 'error'>
     video: HTMLVideoElement;
     mediaStream!: MediaStream;
     destroyed: any;
-    animationFrame: number | undefined;
 
     constructor(canvas: HTMLCanvasElement, streamMode: StreamMode) {
         super();
@@ -69,7 +68,6 @@ export class BroadcastManager extends EventListener<'resize' | 'link' | 'error'>
             throw new Error('getContext failed');
         }
 
-
         const resize = throttle(200, () => {
             const { width, height } = resizeToMaxPixels(this.video.videoWidth, this.video.videoHeight, 1280 * 720)
             this.canvas.width = width;
@@ -99,8 +97,20 @@ export class BroadcastManager extends EventListener<'resize' | 'link' | 'error'>
         transferHandler.start();
 
 
-        await new Promise<void>((resolve) => this.animationFrame = requestAnimationFrame(() => resolve()));
+        const customRAF = (callback: () => void) => {
+            // requestAnimationFrame(callback)
+            setTimeout(callback, 1000 / 60); // 60 FPS
+        };
+        // const customRAF = requestAnimationFrame
+        let frames = 0;
+        const interval = setInterval(() => {
+            console.log(`FPS: ${frames}`);
+            frames = 0;
+        }, 1000);
+
+        await new Promise<void>((resolve) => customRAF(() => resolve()));
         while (!this.destroyed) {
+            frames++;
             ctx.drawImage(
                 this.video,
                 0,
@@ -112,8 +122,10 @@ export class BroadcastManager extends EventListener<'resize' | 'link' | 'error'>
             const dateText = `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}.${date.getMilliseconds().toString().padStart(3, '0')}`;
             ctx.fillText(`${dateText}`, 10, 50, this.canvas.width - 20);
 
-            await new Promise<void>((resolve) => this.animationFrame = requestAnimationFrame(() => resolve()));
+            await new Promise<void>((resolve) => customRAF(() => resolve()));
         }
+
+        clearInterval(interval);
 
         this.video.removeEventListener('resize', resize);
         window.removeEventListener('resize', resize);

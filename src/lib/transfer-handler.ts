@@ -21,26 +21,26 @@ export class TransferHandler extends EventListener<'error' | 'destroy' | 'open' 
         video: true,
     };
 
-    static getRecorderSettings() {
-        const settings: { format?: string; video?: string; audio?: string } = {};
-        if (MediaRecorder.isTypeSupported('video/mp4;codecs=h264')) {
-            settings.format = 'mp4';
-            settings.video = 'h264';
-            settings.audio = 'aac';
-        } else {
-            settings.format = 'webm';
-            settings.audio = 'opus';
-            settings.video = MediaRecorder.isTypeSupported('video/webm;codecs=h264') ? 'h264' : 'vp8';
-        }
-        console.log('Recorder settings used:', settings);
-        return settings;
-    }
+    // static getRecorderSettings() {
+    //     const settings: { format?: string; video?: string; audio?: string } = {};
+    //     if (MediaRecorder.isTypeSupported('video/mp4;codecs=h264')) {
+    //         settings.format = 'mp4';
+    //         settings.video = 'h264';
+    //         settings.audio = 'aac';
+    //     } else {
+    //         settings.format = 'webm';
+    //         settings.audio = 'opus';
+    //         settings.video = MediaRecorder.isTypeSupported('video/webm;codecs=h264') ? 'h264' : 'vp8';
+    //     }
+    //     console.log('Recorder settings used:', settings);
+    //     return settings;
+    // }
 
-    static getRecorderMimeType() {
-        const settings = TransferHandler.getRecorderSettings();
-        const codecs = settings.format === 'webm' ? `;codecs="${settings.video}, ${settings.audio}"` : '';
-        return `video/${settings.format}${codecs}`;
-    }
+    // static getRecorderMimeType() {
+    //     const settings = TransferHandler.getRecorderSettings();
+    //     const codecs = settings.format === 'webm' ? `;codecs="${settings.video}, ${settings.audio}"` : '';
+    //     return `video/${settings.format}${codecs}`;
+    // }
 
     start = () => {
         this.ws = new WebsocketManager(`${window.location.protocol.replace('http', 'ws')}//${window.location.host}/`);
@@ -48,14 +48,57 @@ export class TransferHandler extends EventListener<'error' | 'destroy' | 'open' 
     }
 
     open = async () => {
-        const settings = TransferHandler.getRecorderSettings();
+        // const settings = TransferHandler.getRecorderSettings();
+
+        const codecs = [
+            {
+                mime: 'video/mp4;codecs=h264,aac',
+                video: 'h264',
+                audio: 'aac',
+            },
+            {
+                mime: 'video/webm;codecs=h264,aac',
+                video: 'h264',
+                audio: 'aac',
+            },
+            {
+                mime: 'video/mp4;codecs=h264,opus',
+                video: 'h264',
+                audio: 'opus',
+            },
+            {
+                mime: 'video/webm;codecs=h264,opus',
+                video: 'h264',
+                audio: 'opus',
+            },
+            // {
+            //     mime: 'video/mp4;codecs=h264',
+            //     video: 'h264',
+            // },
+            // {
+            //     mime: 'video/webm;codecs=h264',
+            //     video: 'h264',
+            // },
+            // {
+            //     mime: 'video/webm;codecs=aac',
+            //     audio: 'aac',
+            // },
+            // {
+            //     mime: 'video/webm;codecs=opus',
+            //     audio: 'opus',
+            // },
+        ]
+
+        const supportedMime = codecs.filter(codec => MediaRecorder.isTypeSupported(codec.mime));
+
 
         this.ws.send(JSON.stringify({
             type: 'start',
-            video: settings.video,
-            audio: settings.audio,
+            video: supportedMime[0]?.video,
+            audio: supportedMime[0]?.audio,
             secret: this.secret
-        }))
+        }));
+
         const messageEvent = await this.ws.onceMessage({ timeoutDelay: 3000 });
         console.log('once messageEvent', messageEvent);
 
@@ -65,7 +108,8 @@ export class TransferHandler extends EventListener<'error' | 'destroy' | 'open' 
         localStorage.setItem('secret', secret);
 
         this._callEventListeners('open', {
-            rtmpLink: `rtmp://rtmp.nyades.dev/live/${code}`,
+            // rtmpLink: `rtmp://rtmp.nyades.dev/live/${code}`,
+            rtmpLink: `https://rtmp.nyades.dev/hls/${code}.m3u8`,
             secret,
             code
         });
@@ -80,21 +124,21 @@ export class TransferHandler extends EventListener<'error' | 'destroy' | 'open' 
         this.videoOutputStream = this.canvas.captureStream(30);
 
         // Log supported video codecs
-        const videoCodecs = ['vp8', 'vp9', 'h264', 'av1'];
-        videoCodecs.forEach(codec => {
-            const mimeType = `video/webm;codecs=${codec}`;
-            if (MediaRecorder.isTypeSupported(mimeType)) {
-                console.log(`Supported video codec: ${mimeType}`);
-            }
-        });
-        // Log supported audio codecs
-        const audioCodecs = ['opus', 'aac', 'vorbis', 'mp3'];
-        audioCodecs.forEach(codec => {
-            const mimeType = `audio/webm;codecs=${codec}`;
-            if (MediaRecorder.isTypeSupported(mimeType)) {
-                console.log(`Supported audio codec: ${mimeType}`);
-            }
-        });
+        // const videoCodecs = ['vp8', 'vp9', 'h264', 'av1'];
+        // videoCodecs.forEach(codec => {
+        //     const mimeType = `video/webm;codecs=${codec}`;
+        //     if (MediaRecorder.isTypeSupported(mimeType)) {
+        //         console.log(`Supported video codec: ${mimeType}`);
+        //     }
+        // });
+        // // Log supported audio codecs
+        // const audioCodecs = ['opus', 'aac', 'vorbis', 'mp3'];
+        // audioCodecs.forEach(codec => {
+        //     const mimeType = `audio/webm;codecs=${codec}`;
+        //     if (MediaRecorder.isTypeSupported(mimeType)) {
+        //         console.log(`Supported audio codec: ${mimeType}`);
+        //     }
+        // });
 
         const outputStream = new MediaStream();
 
@@ -102,16 +146,9 @@ export class TransferHandler extends EventListener<'error' | 'destroy' | 'open' 
             outputStream.addTrack(track);
         })
 
-        const codecs = [
-            {
-                mime: 'video/webm;codecs=h264,opus',
-                video: 'h264',
-                audio: 'opus',
-            },
-        ]
 
         this.mediaRecorder = new MediaRecorder(outputStream, {
-            mimeType: codecs[0].mime,
+            mimeType: supportedMime[0]?.mime,
             videoBitsPerSecond: 3_000_000, // 3 Mbps
             audioBitsPerSecond: 128_000,    // 128 Kbps
         });

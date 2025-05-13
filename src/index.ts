@@ -35,21 +35,22 @@ wss.on('connection', async (ws: WebSocket) => {
     codeBySecret.set(secret, code);
   }
 
-  
+
   ws.send(JSON.stringify({ secret, code }));
 
   const videoCodec =
-    // video === 'h264' && !transcode ? 
-    ['-c:v', 'copy']
-  // :
-  // video codec config: low latency, adaptive bitrate
-  // ['-c:v', 'libx264', '-preset', 'veryfast', '-tune', 'zerolatency', '-vf', 'scale=w=-2:0'];
+    video === 'h264' ?
+      ['-c:v', 'copy']
+      :
+      // video codec config: low latency, adaptive bitrate
+      ['-c:v', 'libx264', '-preset', 'veryfast', '-tune', 'zerolatency', '-vf', 'scale=w=-2:0'];
 
   const audioCodec =
     // audio === 'aac' && !transcode ? 
-    // [ '-c:a', 'copy'] :
-    // audio codec config: sampling frequency (11025, 22050, 44100), bitrate 64 kbits
-    ['-c:a', 'aac', '-ar', '44100', '-b:a', '64k'];
+    audio === 'aac' ?
+      ['-c:a', 'copy'] :
+      // audio codec config: sampling frequency (11025, 22050, 44100), bitrate 64 kbits
+      ['-c:a', 'aac', '-ar', '44100', '-b:a', '64k'];
 
   const ffmpeg = child_process.spawn('ffmpeg', [
     '-i', '-',
@@ -61,6 +62,9 @@ wss.on('connection', async (ws: WebSocket) => {
     '-use_wallclock_as_timestamps', '1',
     '-async', '1',
 
+    // force 30 fps
+    '-r', '30',
+
     ...videoCodec,
 
     ...audioCodec,
@@ -69,6 +73,9 @@ wss.on('connection', async (ws: WebSocket) => {
     '-bufsize', '1000',
     '-f', 'flv',
     '-flvflags', 'no_duration_filesize',
+    '-reconnect', '1',
+    '-reconnect_streamed', '1',
+    '-reconnect_delay_max', '2',
     `rtmp://localhost/live/${code}`,
   ]);
   // console.log('FFmpeg command:', ffmpeg.spawnargs.join(' '));
@@ -77,7 +84,15 @@ wss.on('connection', async (ws: WebSocket) => {
   // Kill the WebSocket connection if ffmpeg dies.
   ffmpeg.on('close', (code, signal) => {
     console.log('FFmpeg child process closed, code ' + code + ', signal ' + signal);
-    ws.terminate();
+    if (code !== 0) {
+      ws.send(JSON.stringify({
+        error: true,
+        message: 'FFmpeg process terminated abnormally',
+        code,
+        signal
+      }));
+    }
+    ws.close();
   });
 
   // Handle STDIN pipe errors by logging to the console.
@@ -89,8 +104,19 @@ wss.on('connection', async (ws: WebSocket) => {
 
   // FFmpeg outputs all of its messages to STDERR. Let's log them to the console.
   ffmpeg.stderr.on('data', (data) => {
-    ws.send('ffmpeg got some data');
-    console.log('FFmpeg STDERR:', data.toString());
+    const errorMessage = data.toString();
+    console.log('FFmpeg STDERR:', errorMessage);
+
+    // Send more detailed error information to the client
+    if (errorMessage.includes('Broken pipe') || errorMessage.includes('Conversion failed')) {
+      ws.send(JSON.stringify({
+        error: true,
+        message: 'Stream connection interrupted',
+        details: errorMessage
+      }));
+    } else {
+      ws.send('ffmpeg_status:' + errorMessage);
+    }
   });
 
   ws.on('message', msg => {
@@ -102,8 +128,32 @@ wss.on('connection', async (ws: WebSocket) => {
     }
   });
 
-  ws.on('close', e => {
-    console.log('shit got closed, yo');
+  ws.on('error', (error) => {
+    console.error('WebSocket error:', error);
+    if (error.code === 'WS_ERR_INVALID_CLOSE_CODE') {
+      console.log('Invalid close code received, closing connection');
+      ws.terminate(); // Force close the connection
+    }
     ffmpeg.kill('SIGINT');
   });
+
+  ws.on('close', async (code, reason) => {
+    console.log(`WebSocket connection closed with code ${code} and reason:`, (reason || '').toString());
+    try {
+      ffmpeg.kill('SIGINT');
+    } catch (error) {
+      console.error('Error killing FFmpeg process:', error);
+    }
+  });
+
+  ws.on('unexpected-response', (request, response) => {
+    console.error('Unexpected WebSocket response:', response.statusCode);
+    ws.terminate();
+  });
 });
+
+// Handle unhandled promise rejections to prevent server crash
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+});
+// https://rtmp.nyades.dev/hls/m-gUhEJRm0PrhCOBRrHbC.m3u8

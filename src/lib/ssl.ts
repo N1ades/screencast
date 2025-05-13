@@ -1,10 +1,11 @@
 import { readFileSync } from 'fs';
 import https from 'https';
 import express from 'express';
-import { WebSocketServer } from 'ws';
+// import { WebSocketServer } from 'ws';
 import http from 'http';
 import cors from 'cors';
 import morgan from 'morgan';
+import { WebsocketServerHeartbeat } from './websocket-server.ts';
 
 export const startSsl = (app) => {
   const SSL_KEY_PATH = process.env.SSL_KEY_PATH;
@@ -49,7 +50,7 @@ export const createServer = () => {
       console.log(`Server running on port http://${process.env.HOST}:${process.env.PORT}`);
     });
 
-    const wss = new WebSocketServer({ server });
+    const wss = new WebsocketServerHeartbeat({ server });
     wsServers.push(wss);
   }
 
@@ -62,7 +63,7 @@ export const createServer = () => {
       { key: privateKey, cert: certificate },
       app
     )
-    const wsss = new WebSocketServer({ server });
+    const wsss = new WebsocketServerHeartbeat({ server });
     wsServers.push(wsss);
     server.listen(HTTPS_PORT, HOST, () => {
       console.log(`HTTPS server running on https://${HOST}:${HTTPS_PORT}`);

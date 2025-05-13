@@ -5,7 +5,7 @@ export class WebsocketManager extends EventListener<'reconnect' | 'open' | 'mess
     url: any;
     ws?: WebSocket;
 
-    constructor(url: string) {
+    constructor(url: string | URL) {
         super();
         this.open = true;
         this.url = url;
@@ -73,6 +73,33 @@ export class WebsocketManager extends EventListener<'reconnect' | 'open' | 'mess
             this._callEventListeners("reconnect", event);
             this._callEventListeners("close", event);
         });
+    }
+
+    onceMessage = ({ timeoutDelay }: { timeoutDelay: number }) => {
+        return new Promise<MessageEvent>((resolve, reject) => {
+            const message = (event: MessageEvent<any>) => {
+                try {
+                    clearTimeout(timeout);
+                    resolve(event);
+                }
+                catch (error) {
+                    reject(error);
+                }
+                finally {
+                    this.off('close', reject);
+                }
+            }
+
+            let timeout = setTimeout(() => {
+                reject(new Error('Timeout waiting for message'));
+                this.close();
+                this.off('close', reject);
+                this.off('message', message);
+            }, timeoutDelay);
+
+            this.once('close', reject);
+            this.once('message', message);
+        })
     }
 
 

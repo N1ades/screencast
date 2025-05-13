@@ -38,7 +38,7 @@
           <div v-if="isStreaming && !streamError" class="rtmp-link-section">
             <div class="rtmp-link-label">RTMP Stream Link</div>
             <div class="rtmp-link-row">
-              <input class="rtmp-link-input" :value="rtmpLink" readonly />
+              <input class="rtmp-link-input" :value="rtmpLink || 'Loading...'" :readonly="true" :disabled="!rtmpLink" />
               <button class="copy-btn" @click="copyRtmpLink">
                 <span v-if="!copied">Copy</span>
                 <span v-else class="copied-feedback">Copied!</span>
@@ -85,7 +85,6 @@
 import { defineComponent } from 'vue';
 import HeaderBar from './HeaderBar.vue';
 import { BroadcastManager } from '../lib/broadcast-manager.ts';
-import { MediaHandler } from '../lib/media-handler.ts';
 import SwitchToggle from './SwitchToggle.vue';
 import QualitySelector from './QualitySelector.vue';
 
@@ -97,12 +96,12 @@ export default defineComponent({
       viewers: '0/30',
       quality: '720p',
       qualityPreset: '720p',
-      latency: '45ms',
+      latency: '~1-5s',
       factor: '',
       isStreaming: false,
       broadcastManager: null as BroadcastManager | null,
       streamError: '',
-      rtmpLink: 'rtmp://live.nyades.dev/live/nyades', // Example RTMP link
+      rtmpLink: null,
       copied: false,
       streamMode: 'screen', // Default mode
     }
@@ -122,6 +121,9 @@ export default defineComponent({
       this.$nextTick(async () => {
         try {
           this.broadcastManager = new BroadcastManager(this.$refs.canvas, this.streamMode);
+          this.broadcastManager.addEventListener('link', (rtmpLink) => {
+            this.rtmpLink = rtmpLink;
+          })
           this.broadcastManager.addEventListener('resize', ({ originalWidth, originalHeight, width, height }) => {
 
             const factor = (width * height) / (originalWidth * originalHeight);

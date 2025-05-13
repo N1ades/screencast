@@ -34,6 +34,7 @@
   },
   "devDependencies": {
     "@types/throttle-debounce": "^5.0.2",
+    "@types/ws": "^8.18.1",
     "@vitejs/plugin-vue": "^5.2.3",
     "@vue/tsconfig": "^0.7.0",
     "sass-embedded": "^1.87.0",

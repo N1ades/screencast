@@ -1,22 +1,14 @@
 import '@dotenvx/dotenvx/config'
 import child_process from 'child_process';
-import url from 'url';
 import { createServer } from './lib/ssl.ts';
 import express from 'express';
 import { nanoid } from "nanoid";
+import { db } from './lib/db.ts';
+import type { WebSocket } from 'ws';
 
 const { wss, app } = createServer();
-const transcode = process.env.SMART_TRANSCODE || true;
+// const transcode = process.env.SMART_TRANSCODE || true;
 
-// const server = (cert ? https : http).createServer(options, (req, res) => {
-//   const parsedUrl = parse(req.url, true);
-//   const { pathname, query } = parsedUrl;
-
-//   handle(req, res, parsedUrl);
-// }).listen(port, host, err => {
-//   if (err) throw err;
-//   console.log(`> Ready on port ${port}`);
-// });
 app.use('/assets', express.static('./dist/assets', {
   maxAge: '1y', // cache for 1 year
   immutable: true // tells browser the content won't change
@@ -27,31 +19,24 @@ app.use(express.static('./dist'));
 
 app.use('/donate', express.static('./dist/index.html'));
 
-wss.on('connection', (ws, req) => {
-  console.log('Streaming socket connected');
-  ws.send('WELL HELLO THERE FRIEND');
+const codeBySecret = db.collection('codeBySecret');
 
-  const queryString = url.parse(req.url).search;
-  // console.log(req.url);
-  if (!url.parse(req.url).path.includes('rtmp')) {
-    console.log('No query string, closing connection');
+wss.on('connection', async (ws: WebSocket) => {
+  const data = await ws.onceMessage({ timeoutDelay: 3000 });
+  let { secret, video, audio } = JSON.parse(data.toString());
 
-    ws.send('No query string, closing connection');
-    ws.close();
-    return;
+  console.log({ secret, video, audio });
+
+  let code = secret && codeBySecret.get(secret);
+  secret = (code && secret) ?? nanoid();
+
+  if (!code) {
+    code = nanoid();
+    codeBySecret.set(secret, code);
   }
 
 
-  const params = new URLSearchParams(queryString);
-  // console.log(params);
-  const baseUrl = params.get('url') ?? 'rtmps://global-live.mux.com/app';
-  const key = params.get('key');
-  const video = params.get('video');
-  const audio = params.get('audio');
-
-  const rtmpUrl = `${baseUrl}/${key}`;
-  console.log({ video, audio, rtmpUrl });
-
+  ws.send(JSON.stringify({ secret, code }));
 
   const videoCodec =
     // video === 'h264' && !transcode ? 
@@ -83,10 +68,10 @@ wss.on('connection', (ws, req) => {
     //'-strict', 'experimental',
     '-bufsize', '1000',
     '-f', 'flv',
-
-    `rtmp://localhost/live/${key}`,
+    '-flvflags', 'no_duration_filesize',
+    `rtmp://localhost/live/${code}`,
   ]);
-  console.log('FFmpeg command:', ffmpeg.spawnargs.join(' '));
+  // console.log('FFmpeg command:', ffmpeg.spawnargs.join(' '));
 
 
   // Kill the WebSocket connection if ffmpeg dies.
@@ -113,7 +98,7 @@ wss.on('connection', (ws, req) => {
       console.log('this is some video data');
       ffmpeg.stdin.write(msg);
     } else {
-      console.log(msg);
+      console.log({ msg });
     }
   });
 

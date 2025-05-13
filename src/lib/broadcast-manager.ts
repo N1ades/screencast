@@ -1,6 +1,7 @@
 
 import { throttle } from 'throttle-debounce';
 import { EventListener } from './event-listener.ts';
+import { TransferHandler } from './transfer-handler.ts';
 type StreamMode = 'screen' | 'camera';
 const resizeToMaxPixels = (originalWidth: number, originalHeight: number, maxPixels: number): { width: number, height: number } => {
     const originalPixels = originalWidth * originalHeight;
@@ -18,7 +19,7 @@ const resizeToMaxPixels = (originalWidth: number, originalHeight: number, maxPix
 }
 
 
-export class BroadcastManager extends EventListener<'resize'> {
+export class BroadcastManager extends EventListener<'resize' | 'link'> {
     canvas: HTMLCanvasElement; // video preview
     streamMode: string;
     video: HTMLVideoElement;
@@ -80,8 +81,15 @@ export class BroadcastManager extends EventListener<'resize'> {
 
         window.addEventListener('resize', resize);
         this.video.addEventListener('resize', resize);
-
         resize();
+
+        const transferHandler = new TransferHandler(this.canvas, this.mediaStream.getAudioTracks());
+        transferHandler.on('open', (event) => {
+            this._callEventListeners('link', event.rtmpLink)
+        })
+
+        transferHandler.start();
+
 
         await new Promise<void>((resolve) => this.animationFrame = requestAnimationFrame(() => resolve()));
         while (!this.destroyed) {
@@ -101,6 +109,7 @@ export class BroadcastManager extends EventListener<'resize'> {
 
         this.video.removeEventListener('resize', resize);
         window.removeEventListener('resize', resize);
+        transferHandler.destroy();
     }
 
     destroy = async () => {
@@ -112,73 +121,3 @@ export class BroadcastManager extends EventListener<'resize'> {
             .forEach(track => track.stop())
     }
 }
-
-
-
-
-
-
-
-//     const video = this.$refs.previewVideo;
-//     const canvas = this.$refs.previewCanvas;
-
-
-//     video.srcObject = mediaStream;
-//     await this.$refs.previewVideo.play();
-
-//     canvas.width = video.clientWidth;
-//     canvas.height = video.clientHeight;
-
-//     const ctx = canvas.getContext('2d');
-//     const resize = () => {
-//       canvas.width = video.clientWidth;
-//       canvas.height = video.clientHeight;
-//       ctx.fillStyle = '#FB3C4E';
-//       ctx.font = '30px Akkurat';
-//     };
-//     window.addEventListener('resize', resize);
-
-//     resize();
-
-//     const updateCanvas = () => {
-//       if (video.ended || video.paused) {
-//         return;
-//       }
-
-
-//       ctx.drawImage(
-//         video,
-//         0,
-//         0,
-//         video.clientWidth,
-//         video.clientHeight
-//       );
-
-//       const date = new Date();
-//       const dateText = `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}.${date.getMilliseconds().toString().padStart(3, '0')}`;
-//       ctx.fillText(`${dateText}`, 10, 50, canvas.width - 20);
-
-//       this.requestAnimation = requestAnimationFrame(updateCanvas);
-//     };
-//     this.requestAnimation = requestAnimationFrame(updateCanvas);
-
-
-//     this.mediaHandler = new MediaHandler();
-//     this.mediaHandler.inputStream = mediaStream;
-
-//     this.mediaHandler.setupStreamConnection(
-//       'rtmp://localhost/live',
-//       'nyades'
-//     );
-
-//     this.mediaHandler.streamHandler(canvas);
-
-//     this.mediaHandler.addEventListener('stop', () => {
-//       // setConnected(false);
-//       // stopStreaming();
-//     })
-
-
-//   });
-// } catch (err) {
-//   this.streamError = 'Failed to start screencast: ' + (err && err.message ? err.message : err);

@@ -93,10 +93,10 @@ export default defineComponent({
   components: { HeaderBar, SwitchToggle, QualitySelector },
   data() {
     return {
-      viewers: '0/30',
+      viewers: '?',
       quality: '720p',
       qualityPreset: '720p',
-      latency: '1-5s',
+      latency: '5-10s',
       factor: '',
       isStreaming: false,
       broadcastManager: null as BroadcastManager | null,

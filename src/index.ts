@@ -18,6 +18,7 @@ app.use(express.static('./dist'));
 
 
 app.use('/donate', express.static('./dist/index.html'));
+app.use('/contact', express.static('./dist/index.html'));
 
 const codeBySecret = db.collection('codeBySecret');
 

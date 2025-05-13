@@ -77,8 +77,8 @@ export class BroadcastManager extends EventListener<'resize' | 'link' | 'error'>
             this._callEventListeners('resize', { originalWidth: this.video.videoWidth, originalHeight: this.video.videoHeight, width, height })
         });
 
-        window.addEventListener('resize', resize);
-        this.video.addEventListener('resize', resize);
+        // window.addEventListener('resize', resize);
+        // this.video.addEventListener('resize', resize);
         resize();
 
         const transferHandler = new TransferHandler(this.canvas, this.mediaStream.getAudioTracks());
@@ -129,12 +129,28 @@ export class BroadcastManager extends EventListener<'resize' | 'link' | 'error'>
         await new Promise<void>((resolve) => customRAF(() => resolve()));
         while (!this.destroyed) {
             frames++;
+            const videoAspectRatio = this.video.videoWidth / this.video.videoHeight;
+            const canvasAspectRatio = this.canvas.width / this.canvas.height;
+
+            let drawWidth = this.canvas.width;
+            let drawHeight = this.canvas.height;
+            let offsetX = 0;
+            let offsetY = 0;
+
+            if (videoAspectRatio > canvasAspectRatio) {
+                drawHeight = this.canvas.width / videoAspectRatio;
+                offsetY = (this.canvas.height - drawHeight) / 2;
+            } else {
+                drawWidth = this.canvas.height * videoAspectRatio;
+                offsetX = (this.canvas.width - drawWidth) / 2;
+            }
+            ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
             ctx.drawImage(
                 this.video,
-                0,
-                0,
-                this.canvas.width,
-                this.canvas.height
+                offsetX,
+                offsetY,
+                drawWidth,
+                drawHeight
             );
             // const date = new Date();
             // const dateText = `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}.${date.getMilliseconds().toString().padStart(3, '0')}`;

@@ -1,7 +1,7 @@
 <template>
   <div class="stats-card quality-selector" @click="openSelector">
     <div class="stats-content">
-      <span class="stats-label">Quality</span>
+      <span class="stats-label">{{ t('quality') }}</span>
       <span class="stats-value">
         {{ displayQuality }}
         <span class="stats-value-factor">{{ factor }}</span>
@@ -11,11 +11,11 @@
     <div v-if="showMenu" class="quality-menu" @click.stop>
       <div v-for="option in options" :key="option.value" class="quality-option" @click="select(option)">
         <span>{{ option.label }}</span>
-        <span v-if="option.value === '1080p'" class="pro-badge">pro</span>
+        <span v-if="option.value === '1080p'" class="pro-badge">{{ t('pro') }}</span>
       </div>
     </div>
     <div v-if="showPro" class="pro-popup">
-      1080 рублей / год
+      {{ t('proPopupText') }}
       <button class="close-pro" @click.stop="showPro = false">OK</button>
     </div>
   </div>
@@ -23,6 +23,7 @@
 
 <script lang="ts">
 import { defineComponent, ref, watch, computed } from 'vue';
+import { t } from '../i18n';
 export default defineComponent({
   name: 'QualitySelector',
   props: {
@@ -51,7 +52,7 @@ export default defineComponent({
       }
       emit('update:modelValue', option.value);
     }
-    return { showMenu, showPro, options, openSelector, select, displayQuality };
+    return { showMenu, showPro, options, openSelector, select, displayQuality, t };
   },
 });
 </script>

@@ -3,26 +3,26 @@
     <HeaderBar />
     <div class="contact-card">
       <div class="contact-header">
-        <div class="contact-title">Contact Me</div>
-        <div class="contact-subtitle">Get in touch with Nyades</div>
+        <div class="contact-title">{{ t('contactMe') }}</div>
+        <div class="contact-subtitle">{{ t('getInTouch') }}</div>
       </div>
       <form class="contact-form" action="https://formsubmit.co/contactme@nyades.dev" method="POST">
         <input type="hidden" name="_captcha" value="false" />
         <div class="form-group">
-          <label for="name">Name</label>
+          <label for="name">{{ t('name') }}</label>
           <input id="name" name="name" v-model="form.name" type="text" required />
         </div>
         <div class="form-group">
-          <label for="email">Email</label>
+          <label for="email">{{ t('email') }}</label>
           <input id="email" name="email" v-model="form.email" type="email" required />
         </div>
         <div class="form-group">
-          <label for="message">Message</label>
+          <label for="message">{{ t('message') }}</label>
           <textarea id="message" name="message" v-model="form.message" rows="5" required></textarea>
         </div>
-        <button class="send-btn" type="submit">Send</button>
+        <button class="send-btn" type="submit">{{ t('send') }}</button>
         <div class="discord-link">
-          <a href="https://discord.gg/rWJXGzSj" target="_blank" rel="noopener" >Join our Discord</a>
+          <a href="https://discord.gg/rWJXGzSj" target="_blank" rel="noopener" >{{ t('joinDiscord') }}</a>
         </div>
       </form>
     </div>
@@ -31,12 +31,14 @@
 
 <script>
 import HeaderBar from './HeaderBar.vue';
+import { t } from '../i18n';
 export default {
   name: 'ContactMe',
   components: { HeaderBar },
   data() {
     return {
       form: { name: '', email: '', message: '' },
+      t, // expose t for template
     };
   },
 };

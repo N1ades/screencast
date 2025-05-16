@@ -3,29 +3,29 @@
     <HeaderBar />
     <div class="donate-card">
       <div class="donate-header">
-        <div class="donate-title">Support Nyades</div>
-        <div class="donate-subtitle">Choose your preferred donation method</div>
+        <div class="donate-title">{{ t('donate.supportNyades') }}</div>
+        <div class="donate-subtitle">{{ t('donate.chooseMethod') }}</div>
       </div>
       <div class="donate-methods">
         <!-- Credit Card -->
         <div class="donate-method donate-credit" tabindex="0" @click="showKofi">
           <div class="donate-icon bg-purple">
-            <img src="/src/assets/icons/credit-card.svg" alt="Credit Card" />
+            <img src="/src/assets/icons/credit-card.svg" :alt="t('donate.creditCardAlt')" />
           </div>
           <div class="donate-info">
-            <div class="donate-method-title purple">Payment Card</div>
-            <div class="donate-method-desc purple">Visa & Mastercard</div>
+            <div class="donate-method-title purple">{{ t('donate.paymentCard') }}</div>
+            <div class="donate-method-desc purple">{{ t('donate.visaMastercard') }}</div>
           </div>
         </div>
         <!-- MIR Card -->
         <a class="donate-method donate-mir" tabindex="0"
           href="https://www.tbank.ru/rm/r_qiDJRIDVKx.vnXggUVAoS/rikeI60663/" target="_blank" rel="noopener noreferrer">
           <div class="donate-icon bg-blue">
-            <img src="/src/assets/icons/mir-card.svg" alt="MIR Card" />
+            <img src="/src/assets/icons/mir-card.svg" :alt="t('donate.mirCardAlt')" />
           </div>
           <div class="donate-info">
-            <div class="donate-method-title blue">MIR Card</div>
-            <div class="donate-method-desc blue">Payment Card (MIR)</div>
+            <div class="donate-method-title blue">{{ t('donate.mirCard') }}</div>
+            <div class="donate-method-desc blue">{{ t('donate.paymentCardMir') }}</div>
           </div>
         </a>
         <!-- DonationAlerts (now SBP QR modal/link) -->
@@ -34,56 +34,56 @@
           :href="isMobile ? 'https://qr.nspk.ru/BS2A006UJGIT109A9GQ9VI4PT1S5MKP4?type=04&bank=100000000004&crc=27A0' : undefined"
           :target="isMobile ? '_blank' : undefined" :rel="isMobile ? 'noopener noreferrer' : undefined">
           <div class="donate-icon bg-pink">
-            <img src="/src/assets/icons/donation-alerts.svg" alt="DonationAlerts" />
+            <img src="/src/assets/icons/donation-alerts.svg" :alt="t('donate.sbpAlt')" />
           </div>
           <div class="donate-info">
-            <div class="donate-method-title pink">СБП (Система быстрых платежей)</div>
-            <div class="donate-method-desc pink">SBP QR</div>
+            <div class="donate-method-title pink">{{ t('donate.sbpTitle') }}</div>
+            <div class="donate-method-desc pink">{{ t('donate.sbpDesc') }}</div>
           </div>
         </component>
         <!-- Ko-fi -->
         <div class="donate-method donate-kofi" tabindex="0" @click="showKofi">
           <div class="donate-icon bg-blue">
-            <img src="/src/assets/icons/kofi.svg" alt="Ko-fi" />
+            <img src="/src/assets/icons/kofi.svg" :alt="t('donate.kofiAlt')" />
           </div>
           <div class="donate-info">
-            <div class="donate-method-title blue">PayPal</div>
-            <div class="donate-method-desc blue">Support via PayPal</div>
+            <div class="donate-method-title blue">{{ t('donate.paypal') }}</div>
+            <div class="donate-method-desc blue">{{ t('donate.supportViaPaypal') }}</div>
           </div>
         </div>
         <!-- WeChat Pay & Alipay in one row -->
         <div class="donate-method-row">
           <div class="donate-method donate-wechat" tabindex="0" @click="showQr('wechat')">
             <div class="donate-icon bg-green">
-              <img src="/src/assets/icons/wechat-pay.svg" alt="WeChat Pay" />
+              <img src="/src/assets/icons/wechat-pay.svg" :alt="t('donate.wechatAlt')" />
             </div>
             <div class="donate-info">
-              <div class="donate-method-title green">WeChat Pay</div>
-              <div class="donate-method-desc green">微信支付</div>
+              <div class="donate-method-title green">{{ t('donate.wechatPay') }}</div>
+              <div class="donate-method-desc green">{{ t('donate.wechatPayZh') }}</div>
             </div>
           </div>
           <div class="donate-method donate-alipay" tabindex="0" @click="showQr('alipay')">
             <div class="donate-icon bg-blue">
-              <img src="/src/assets/icons/alipay.svg" alt="Alipay" />
+              <img src="/src/assets/icons/alipay.svg" :alt="t('donate.alipayAlt')" />
             </div>
             <div class="donate-info">
-              <div class="donate-method-title blue">Alipay</div>
-              <div class="donate-method-desc blue">支付宝</div>
+              <div class="donate-method-title blue">{{ t('donate.alipay') }}</div>
+              <div class="donate-method-desc blue">{{ t('donate.alipayZh') }}</div>
             </div>
           </div>
         </div>
       </div>
       <div class="donate-footer">
-        Thank you for your support! <span class="heart">&lt;3</span>
+        {{ t('donate.thankYou') }} <span class="heart">&lt;3</span>
       </div>
     </div>
     <!-- QR Modal -->
     <div v-if="qrModal" class="qr-modal" @click.self="closeQr">
       <div class="qr-modal-content">
-        <img v-if="qrType === 'wechat'" src="/src/assets/wechatqr.png" alt="WeChat QR" />
-        <img v-if="qrType === 'alipay'" src="/src/assets/alipayqr.jpg" alt="Alipay QR" />
-        <img v-if="qrType === 'sbp'" src="/src/assets/sbpqr.svg" alt="SBP QR" />
-        <button class="qr-modal-close" @click="closeQr">Close</button>
+        <img v-if="qrType === 'wechat'" src="/src/assets/wechatqr.png" :alt="t('donate.wechatQrAlt')" />
+        <img v-if="qrType === 'alipay'" src="/src/assets/alipayqr.jpg" :alt="t('donate.alipayQrAlt')" />
+        <img v-if="qrType === 'sbp'" src="/src/assets/sbpqr.svg" :alt="t('donate.sbpQrAlt')" />
+        <button class="qr-modal-close" @click="closeQr">{{ t('close') }}</button>
       </div>
     </div>
     <!-- Ko-fi Modal -->
@@ -92,7 +92,7 @@
         <iframe id="kofiframe" src="https://ko-fi.com/nyades/?hidefeed=true&widget=true&embed=true&preview=true"
           style="border:none;width:100%;max-width:600px;padding:4px;background:#f9f9f9;" height="712"
           title="nyades"></iframe>
-        <button class="qr-modal-close" @click="closeKofi">Close</button>
+        <button class="qr-modal-close" @click="closeKofi">{{ t('close') }}</button>
       </div>
     </div>
   </div>
@@ -101,6 +101,7 @@
 <script>
 import { mobileCheck } from '../lib/mobile-check';
 import HeaderBar from './HeaderBar.vue';
+import { t } from '../i18n';
 export default {
   name: 'DonatePage',
   components: { HeaderBar },
@@ -137,6 +138,7 @@ export default {
     checkMobile() {
       this.isMobile = mobileCheck();
     },
+    t, // expose t for template
   },
 }
 </script>

@@ -9,12 +9,14 @@
         <div class="card-content">
           <div class="title-section">
             <h1 class="card-title">{{ t('streamToVRChat') }}</h1>
-            <p class="card-subtitle">{{ t('shareYour', { mode: streamMode }) }}</p>
+            <p class="card-subtitle">
+              {{ streamMode === 'camera' ? t('shareYourCamera') : t('shareYourScreen') }}
+            </p>
           </div>
           <div class="action-section">
             <button class="start-button" :class="{ streaming: isStreaming }" @click="toggleStream">
-              <img v-if="isStreaming" class="button-icon" src="/src/assets/icons/stop-icon.svg" alt="Stop Icon" />
-              <img v-else class="button-icon" src="/src/assets/icons/button-icon.svg" alt="Button Icon" />
+              <img v-if="isStreaming" class="button-icon" src="/src/assets/icons/stop-icon.svg" :alt="t('stopIconAlt')" />
+              <img v-else class="button-icon" src="/src/assets/icons/button-icon.svg" :alt="t('startIconAlt')" />
               <span>
                 {{ isStreaming
                   ? (streamMode === 'camera' ? t('stopBroadcast') : t('stopScreencast'))
@@ -37,7 +39,7 @@
           <div v-if="isStreaming && !streamError" class="rtmp-link-section">
             <div class="rtmp-link-label">{{ t('rtmpStreamLink') }}</div>
             <div class="rtmp-link-row">
-              <input class="rtmp-link-input" :value="rtmpLink || 'Loading...'" :readonly="true" :disabled="!rtmpLink" />
+              <input class="rtmp-link-input" :value="rtmpLink || t('loading')" :readonly="true" :disabled="!rtmpLink" />
               <button class="copy-btn" @click="copyRtmpLink">
                 <span v-if="!copied">{{ t('copy') }}</span>
                 <span v-else class="copied-feedback">{{ t('copied') }}</span>

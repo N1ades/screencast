@@ -40,7 +40,7 @@ wss.on('connection', async (ws: WebSocket) => {
   ws.send(JSON.stringify({ secret, code }));
 
   const videoCodec =
-    video === 'h264' ?
+    video === 'h264' || video === 'vp8' ?
       ['-c:v', 'copy']
       :
       // video codec config: low latency, adaptive bitrate
@@ -48,7 +48,7 @@ wss.on('connection', async (ws: WebSocket) => {
 
   const audioCodec =
     // audio === 'aac' && !transcode ? 
-    audio === 'aac' ?
+    audio === 'aac' || video === 'vp8' ?
       ['-c:a', 'copy'] :
       // audio codec config: sampling frequency (11025, 22050, 44100), bitrate 64 kbits
       ['-c:a', 'aac', '-ar', '44100', '-b:a', '64k'];
@@ -72,7 +72,7 @@ wss.on('connection', async (ws: WebSocket) => {
     //'-filter_complex', 'aresample=44100', // resample audio to 44100Hz, needed if input is not 44100
     //'-strict', 'experimental',
     '-bufsize', '1000',
-    '-f', 'flv',
+    '-f', video === 'vp8' ? 'webm' : 'flv',
     '-flvflags', 'no_duration_filesize',
     '-reconnect', '1',
     '-reconnect_streamed', '1',

@@ -27,3 +27,5 @@ export const supportedMime = {
     video: getSupportedMimeTypes("video", videoTypes, codecs),
     audio: getSupportedMimeTypes("audio", audioTypes, codecs)
 }
+
+console.log("Supported mime types", supportedMime);

@@ -50,6 +50,16 @@ export class TransferHandler extends EventListener<'error' | 'destroy' | 'open' 
                 video: 'h264',
                 audio: 'opus',
             },
+            {
+                mime: 'video/webm;codecs=vp8,aac',
+                video: 'vp8',
+                audio: 'aac',
+            },
+            {
+                mime: 'video/webm;codecs=vp8,opus',
+                video: 'vp8',
+                audio: 'opus',
+            },
         ]
 
         const supportedMime = codecs.filter(codec => MediaRecorder.isTypeSupported(codec.mime));
@@ -72,7 +82,7 @@ export class TransferHandler extends EventListener<'error' | 'destroy' | 'open' 
 
         this._callEventListeners('open', {
             // rtmpLink: `rtmp://rtmp.nyades.dev/live/${code}`,
-            rtmpLink: `https://rtmp.nyades.dev/hls/${code}.m3u8`,
+            rtmpLink: `https://hls.nyades.dev/hls/${code}.m3u8`,
             secret,
             code
         });

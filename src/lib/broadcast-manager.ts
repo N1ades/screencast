@@ -69,7 +69,7 @@ export class BroadcastManager extends EventListener<'resize' | 'link' | 'error'>
         }
 
         const resize = throttle(200, () => {
-            const { width, height } = resizeToMaxPixels(this.video.videoWidth, this.video.videoHeight, 1280 * 720)
+            const { width, height } = resizeToMaxPixels(this.video.videoWidth, this.video.videoHeight, 1280 * 720) // 
             this.canvas.width = width;
             this.canvas.height = height;
             ctx.fillStyle = '#FB3C4E';

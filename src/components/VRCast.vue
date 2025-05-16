@@ -8,8 +8,8 @@
       <div class="cast-card">
         <div class="card-content">
           <div class="title-section">
-            <h1 class="card-title">Stream to VRChat</h1>
-            <p class="card-subtitle">Share your {{ streamMode }} in virtual reality</p>
+            <h1 class="card-title">{{ t('streamToVRChat') }}</h1>
+            <p class="card-subtitle">{{ t('shareYour', { mode: streamMode }) }}</p>
           </div>
           <div class="action-section">
             <button class="start-button" :class="{ streaming: isStreaming }" @click="toggleStream">
@@ -17,12 +17,11 @@
               <img v-else class="button-icon" src="/src/assets/icons/button-icon.svg" alt="Button Icon" />
               <span>
                 {{ isStreaming
-                  ? (streamMode === 'camera' ? 'Stop Broadcast' : 'Stop Screencast')
-                  : (streamMode === 'camera' ? 'Start Broadcast' : 'Start Screencast')
+                  ? (streamMode === 'camera' ? t('stopBroadcast') : t('stopScreencast'))
+                  : (streamMode === 'camera' ? t('startBroadcast') : t('startScreencast'))
                 }}
               </span>
             </button>
-
             <!-- SwitchToggle component for Stream Mode -->
             <SwitchToggle v-if="!isStreaming" v-model="streamMode" :modes="['camera', 'screen']"
               @change="setStreamMode" />
@@ -30,143 +29,143 @@
           <div class="status-indicator">
             <div class="status-dot" :style="{ background: isStreaming ? '#10B981' : '#F59E42' }"></div>
             <div class="status-text" :style="{ color: isStreaming ? '#34D399' : '#FBBF24' }">
-              {{ isStreaming ? (streamError ? 'Error' : 'Streaming') : 'Ready' }}
+              {{ isStreaming ? (streamError ? t('error') : t('streaming')) : t('ready') }}
             </div>
           </div>
           <div v-if="streamError" class="error-message">{{ streamError }}</div>
           <!-- RTMP Link Copy Section -->
           <div v-if="isStreaming && !streamError" class="rtmp-link-section">
-            <div class="rtmp-link-label">RTMP Stream Link</div>
+            <div class="rtmp-link-label">{{ t('rtmpStreamLink') }}</div>
             <div class="rtmp-link-row">
               <input class="rtmp-link-input" :value="rtmpLink || 'Loading...'" :readonly="true" :disabled="!rtmpLink" />
               <button class="copy-btn" @click="copyRtmpLink">
-                <span v-if="!copied">Copy</span>
-                <span v-else class="copied-feedback">Copied!</span>
+                <span v-if="!copied">{{ t('copy') }}</span>
+                <span v-else class="copied-feedback">{{ t('copied') }}</span>
               </button>
             </div>
           </div>
         </div>
       </div>
-
       <!-- Stats Section -->
       <div class="stats-section">
         <div class="stats-card">
           <div class="stats-content">
-            <span class="stats-label">Viewers</span>
+            <span class="stats-label">{{ t('viewers') }}</span>
             <span class="stats-value">{{ viewers }}</span>
           </div>
         </div>
         <div v-if="isStreaming" class="stats-card">
           <div class="stats-content">
-            <span class="stats-label">Quality</span>
+            <span class="stats-label">{{ t('quality') }}</span>
             <span class="stats-value">{{ quality }} <span class="stats-value-factor">{{ factor }}</span></span>
           </div>
         </div>
         <QualitySelector v-else class="stats-card" v-model="qualityPreset" />
-
         <div class="stats-card">
           <div class="stats-content">
-            <span class="stats-label">Latency</span>
+            <span class="stats-label">{{ t('latency') }}</span>
             <span class="stats-value">{{ latency }}</span>
           </div>
         </div>
       </div>
       <!-- Screencast Preview -->
       <div v-if="isStreaming" class="preview-section">
-        <!-- <video ref="previewVideo" autoplay muted playsinline class="preview-video"></video> -->
         <canvas ref=canvas class="preview-canvas"></canvas>
       </div>
-
     </div>
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue';
+import { defineComponent, ref } from 'vue';
 import HeaderBar from './HeaderBar.vue';
 import { BroadcastManager } from '../lib/broadcast-manager.ts';
 import SwitchToggle from './SwitchToggle.vue';
 import QualitySelector from './QualitySelector.vue';
+import { t } from '../i18n';
 
 export default defineComponent({
   name: 'VRCast',
   components: { HeaderBar, SwitchToggle, QualitySelector },
-  data() {
-    return {
-      viewers: '?',
-      quality: '720p',
-      qualityPreset: '720p',
-      latency: '5-10s',
-      factor: '',
-      isStreaming: false,
-      broadcastManager: null as BroadcastManager | null,
-      streamError: '',
-      rtmpLink: '',
-      copied: false,
-      streamMode: 'screen', // Default mode
+  setup() {
+    const viewers = ref('?');
+    const quality = ref('720p');
+    const qualityPreset = ref('720p');
+    const latency = ref('5-10s');
+    const factor = ref('');
+    const isStreaming = ref(false);
+    const broadcastManager = ref<BroadcastManager | null>(null);
+    const streamError = ref('');
+    const rtmpLink = ref('');
+    const copied = ref(false);
+    const streamMode = ref('screen');
+    
+    function setStreamMode(mode: string) {
+      streamMode.value = mode;
     }
-  },
-  beforeUnmount() {
-    window.removeEventListener('beforeunload', this.preventClose);
-    this.broadcastManager?.destroy();
-  },
-  methods: {
-    async toggleStream() {
-      this.streamError = '';
-      if (this.isStreaming) {
-        window.removeEventListener('beforeunload', this.preventClose);
-        this.broadcastManager?.destroy()
-        return
-      }
-      this.isStreaming = true;
-      window.addEventListener('beforeunload', this.preventClose);
-
-      this.$nextTick(async () => {
-        try {
-          this.broadcastManager = new BroadcastManager(this.$refs.canvas, this.streamMode);
-          this.broadcastManager.addEventListener('link', (rtmpLink) => {
-            this.rtmpLink = rtmpLink;
-          })
-          this.broadcastManager.addEventListener('resize', ({ originalWidth, originalHeight, width, height }) => {
-
-            const factor = (width * height) / (originalWidth * originalHeight);
-
-            this.quality = `${width}x${height}`
-
-            this.factor = factor != 1 ? `${Math.round(factor * 100)}%` : ''
-          })
-          this.broadcastManager.addEventListener('error', (error) => {
-            this.streamError = error.message;
-          })
-
-          await this.broadcastManager.start();
-        } catch (error) {
-          this.streamError = 'Failed to start screencast: ' + (error && error.message ? error.message : error);
-        } finally {
-          this.isStreaming = false;
-          this.factor = '';
-          this.quality = '720p';
-        }
-      });
-    },
-    async copyRtmpLink() {
-      try {
-        await navigator.clipboard.writeText(this.rtmpLink);
-        this.copied = true;
-        setTimeout(() => { this.copied = false; }, 1200);
-      } catch (e) {
-        // fallback or error handling
-      }
-    },
-    setStreamMode(mode: string) {
-      this.streamMode = mode;
-    },
-    preventClose(event) {
+    function preventClose(event: any) {
       event.preventDefault();
       event.returnValue = '';
-    },
+    }
+    async function toggleStream() {
+      streamError.value = '';
+      if (isStreaming.value) {
+        window.removeEventListener('beforeunload', preventClose);
+        broadcastManager.value?.destroy();
+        return;
+      }
+      isStreaming.value = true;
+      window.addEventListener('beforeunload', preventClose);
+      await new Promise<void>(resolve => setTimeout(resolve));
+      try {
+        broadcastManager.value = new BroadcastManager((this as any).$refs.canvas, streamMode.value);
+        broadcastManager.value.addEventListener('link', (link: string) => {
+          rtmpLink.value = link;
+        });
+        broadcastManager.value.addEventListener('resize', ({ originalWidth, originalHeight, width, height }) => {
+          const f = (width * height) / (originalWidth * originalHeight);
+          quality.value = `${width}x${height}`;
+          factor.value = f != 1 ? `${Math.round(f * 100)}%` : '';
+        });
+        broadcastManager.value.addEventListener('error', (error: any) => {
+          streamError.value = error.message;
+        });
+        await broadcastManager.value.start();
+      } catch (error: any) {
+        streamError.value = 'Failed to start screencast: ' + (error && error.message ? error.message : error);
+      } finally {
+        isStreaming.value = false;
+        factor.value = '';
+        quality.value = '720p';
+      }
+    }
+    async function copyRtmpLink() {
+      try {
+        await navigator.clipboard.writeText(rtmpLink.value);
+        copied.value = true;
+        setTimeout(() => { copied.value = false; }, 1200);
+      } catch (e) {}
+    }
+    return {
+      t,
+      viewers,
+      quality,
+      qualityPreset,
+      latency,
+      factor,
+      isStreaming,
+      broadcastManager,
+      streamError,
+      rtmpLink,
+      copied,
+      streamMode,
+      setStreamMode,
+      preventClose,
+      toggleStream,
+      copyRtmpLink
+    };
   }
-})
+});
 </script>
 
 <style>

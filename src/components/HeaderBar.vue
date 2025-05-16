@@ -3,26 +3,31 @@
     <div class="header-content">
       <router-link to="/" class="logo" style="text-decoration: none;">
         <img class="logo-icon" src="@/assets/icons/logo-icon.svg" alt="Logo Icon" />
-        <div class="logo-text">VrBroadcast</div> <span class="logo-subtext">Pre-alpha</span>
+        <div class="logo-text">{{ t('appName') }}</div> <span class="logo-subtext">{{ t('preAlpha') }}</span>
       </router-link>
       <div class="header-actions">
         <template v-if="externalLinks">
           <a class="nav-link" href="https://disk.nyades.dev" target="_blank" rel="noopener">Realtime file sharing</a>
-          <a class="nav-link" href="/contact" target="_blank" rel="noopener">Contact Me</a>
+          <a class="nav-link" href="/contact" target="_blank" rel="noopener">{{ t('contactMe') }}</a>
           <a href="/donate" class="donate-btn" target="_blank" rel="noopener">Donate</a>
         </template>
         <template v-else>
           <a class="nav-link" href="https://disk.nyades.dev" rel="noopener">Realtime file sharing</a>
-          <router-link class="nav-link" to="/contact">Contact Me</router-link>
+          <router-link class="nav-link" to="/contact">{{ t('contactMe') }}</router-link>
           <router-link class="donate-btn" to="/donate">Donate</router-link>
         </template>
+        <div class="lang-switcher">
+          <button :class="{ active: locale === 'en' }" @click="switchLang('en')">EN</button>
+          <button :class="{ active: locale === 'ru' }" @click="switchLang('ru')">RU</button>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue';
+import { defineComponent, computed } from 'vue';
+import i18n, { t, setLocale, getLocale } from '../i18n';
 export default defineComponent({
   name: 'HeaderBar',
   props: {
@@ -30,6 +35,13 @@ export default defineComponent({
       type: Boolean,
       default: false,
     },
+  },
+  setup() {
+    return {
+      t,
+      locale: computed(() => i18n.state.locale),
+      switchLang: setLocale,
+    };
   },
 });
 </script>
@@ -118,5 +130,27 @@ export default defineComponent({
 
 .nav-link:hover {
   text-decoration: underline;
+}
+
+.lang-switcher {
+  display: flex;
+  gap: 4px;
+  margin-left: 18px;
+}
+.lang-switcher button {
+  background: none;
+  border: 1px solid #a78bfa;
+  color: #a78bfa;
+  border-radius: 5px;
+  padding: 2px 10px;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+.lang-switcher button.active,
+.lang-switcher button:hover {
+  background: #a78bfa;
+  color: #18181b;
 }
 </style>

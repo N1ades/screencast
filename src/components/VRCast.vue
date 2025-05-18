@@ -4,6 +4,11 @@
     <HeaderBar :externalLinks="isStreaming" />
     <!-- Main Content -->
     <div class="main-content">
+      <!-- Browser Warning Note -->
+      <div class="browser-warning">
+        <span class="warning-icon">⚠️</span>
+        <span>{{ 'There are some troubles with Firefox right now. Please use Chrome or Edge for best experience.' }}</span>
+      </div>
       <!-- Cast Card -->
       <div class="cast-card">
         <div class="card-content">
@@ -615,5 +620,31 @@ export default defineComponent({
     font-size: 13px;
     padding: 6px 10px;
   }
+}
+
+/* Browser warning styles */
+.browser-warning {
+  font-family: 'Quicksand', sans-serif;
+  width: 100%;
+  max-width: 768px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-bottom: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  font-size: 14px;
+  color: #FBBF24;
+  position: relative;
+}
+
+.warning-icon {
+  font-size: 18px;
+  line-height: 18px;
+  position: relative;
+  top: 1px;
 }
 </style>

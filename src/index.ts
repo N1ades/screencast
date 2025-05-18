@@ -5,6 +5,7 @@ import express from 'express';
 import { nanoid } from "nanoid";
 import { db } from './lib/db.ts';
 import type { WebSocket } from 'ws';
+import { createProxyMiddleware } from 'http-proxy-middleware';
 
 const { wss, app } = createServer();
 // const transcode = process.env.SMART_TRANSCODE || true;
@@ -21,6 +22,7 @@ app.use('/donate', express.static('./dist/index.html'));
 app.use('/contact', express.static('./dist/index.html'));
 
 const codeBySecret = db.collection('codeBySecret');
+
 
 wss.on('connection', async (ws: WebSocket) => {
   const data = await ws.onceMessage({ timeoutDelay: 3000 });

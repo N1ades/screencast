@@ -125,7 +125,7 @@ export default defineComponent({
       window.addEventListener('beforeunload', preventClose);
       await new Promise<void>(resolve => setTimeout(resolve));
       try {
-        broadcastManager.value = new BroadcastManager((this as any).$refs.canvas, streamMode.value);
+        broadcastManager.value = new BroadcastManager((this as any).$refs.canvas, streamMode.value, qualityPreset.value);
         broadcastManager.value.addEventListener('link', (link: string) => {
           rtmpLink.value = link;
         });

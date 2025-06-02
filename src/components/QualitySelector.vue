@@ -11,7 +11,7 @@
     <div v-if="showMenu" class="quality-menu" @click.stop>
       <div v-for="option in options" :key="option.value" class="quality-option" @click="select(option)">
         <span>{{ option.label }}</span>
-        <span v-if="option.value === '1080p'" class="pro-badge">{{ t('pro') }}</span>
+        <!-- <span v-if="option.value === '1080p'" class="pro-badge">{{ t('pro') }}</span> -->
       </div>
     </div>
     <div v-if="showPro" class="pro-popup">
@@ -35,6 +35,7 @@ export default defineComponent({
     const showMenu = ref(false);
     const showPro = ref(false);
     const options = [
+      { value: '1440p', label: '1440p' },
       { value: '1080p', label: '1080p' },
       { value: '720p', label: '720p' },
       { value: '480p', label: '480p' },

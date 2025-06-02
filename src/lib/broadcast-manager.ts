@@ -26,11 +26,14 @@ export class BroadcastManager extends EventListener<'resize' | 'link' | 'error'>
     mediaStream!: MediaStream;
     destroyed: any;
 
-    constructor(canvas: HTMLCanvasElement, streamMode: StreamMode) {
+    constructor(canvas: HTMLCanvasElement, streamMode: StreamMode, qualityPreset) {
         super();
         this.canvas = canvas;
         this.streamMode = streamMode;
         this.video = document.createElement('video');
+        this.qualityPreset = qualityPreset
+        console.log(qualityPreset);
+        
     }
 
     start = async () => {
@@ -68,8 +71,17 @@ export class BroadcastManager extends EventListener<'resize' | 'link' | 'error'>
             throw new Error('getContext failed');
         }
 
+        const pixels = [
+            { value: '1440p', label: '1440p', resolution: 2560 * 1440 },
+            { value: '1080p', label: '1080p', resolution: 1920 * 1080 },
+            { value: '720p', label: '720p', resolution: 1280 * 720 },
+            { value: '480p', label: '480p', resolution: 640 * 480 },
+        ]
+
+        const resolution = pixels.find(v => v.value === this.qualityPreset).resolution;
+
         const resize = throttle(200, () => {
-            const { width, height } = resizeToMaxPixels(this.video.videoWidth, this.video.videoHeight, 1280 * 720) // 
+            const { width, height } = resizeToMaxPixels(this.video.videoWidth, this.video.videoHeight, resolution) // 
             this.canvas.width = width;
             this.canvas.height = height;
             ctx.fillStyle = '#FB3C4E';
@@ -152,10 +164,20 @@ export class BroadcastManager extends EventListener<'resize' | 'link' | 'error'>
                 drawWidth,
                 drawHeight
             );
+            
+            // Add semi-transparent watermark
+            ctx.save();
+            ctx.globalAlpha = 0.3;
+            ctx.fillStyle = '#FFFFFF';
+            ctx.font = `bold ${Math.ceil(this.canvas.height / 40)}px Arial`;
+            ctx.textAlign = 'right';
+            ctx.textBaseline = 'bottom';
+            ctx.fillText('nyades.dev', this.canvas.width - 20, this.canvas.height - 20);
+            ctx.restore();
+
             // const date = new Date();
             // const dateText = `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}.${date.getMilliseconds().toString().padStart(3, '0')}`;
             // ctx.fillText(`${dateText}`, 10, 50, this.canvas.width - 20);
-
             await new Promise<void>((resolve) => customRAF(() => resolve()));
         }
 

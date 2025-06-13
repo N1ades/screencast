@@ -153,6 +153,21 @@ wss.on('connection', async (ws: WebSocket) => {
   });
 });
 
+// Check if ffmpeg is installed
+function checkFFmpegInstalled() {
+  try {
+    child_process.execSync('ffmpeg -version', { stdio: 'ignore' });
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+if (!checkFFmpegInstalled()) {
+  console.error('FFmpeg is not installed or not found in PATH. Please install FFmpeg to continue.');
+  process.exit(1);
+}
+
 // Handle unhandled promise rejections to prevent server crash
 process.on('unhandledRejection', (reason, promise) => {
   console.error('Unhandled Rejection at:', promise, 'reason:', reason);

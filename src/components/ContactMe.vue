@@ -22,7 +22,7 @@
         </div>
         <button class="send-btn" type="submit">{{ t('send') }}</button>
         <div class="discord-link">
-          <a href="https://discord.gg/rWJXGzSj" target="_blank" rel="noopener" >{{ t('joinDiscord') }}</a>
+          <a href="https://discord.gg/b27xaEB2tm" target="_blank" rel="noopener" >{{ t('joinDiscord') }}</a>
         </div>
       </form>
     </div>

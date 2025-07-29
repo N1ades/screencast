@@ -76,7 +76,7 @@ npm start
 
 ```mermaid
 graph TB
-    A[Browser Client] -->|| B[Vue 3 Frontend]
+    A[Browser Client] -->|WS| B[Vue 3 Frontend]
     B -->|Canvas Streaming| C[Broadcast Manager]
     C -->|WebSocket| D[Express Server]
     D -->|RTMP| E[NGINX Media Server]

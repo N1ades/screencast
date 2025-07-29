@@ -27,7 +27,6 @@
 🎯 **VRChat Integration** 
 - Direct streaming to VRChat worlds
 - Optimized for virtual reality environments
-- Real-time viewer count tracking
 
 🛠 **Developer Experience**
 - Modern Vue 3 + TypeScript stack

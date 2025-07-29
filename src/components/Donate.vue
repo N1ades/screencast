@@ -28,18 +28,16 @@
             <div class="donate-method-desc blue">{{ t('donate.paymentCardMir') }}</div>
           </div>
         </a>
-        <component :is="isMobile ? 'a' : 'div'" class="donate-method donate-alerts" tabindex="0"
-          @click="isMobile ? null : showQr('sbp')"
-          :href="isMobile ? 'https://qr.nspk.ru/BS2A006UJGIT109A9GQ9VI4PT1S5MKP4?type=04&bank=100000000004&crc=27A0' : undefined"
-          :target="isMobile ? '_blank' : undefined" :rel="isMobile ? 'noopener noreferrer' : undefined">
-          <div class="donate-icon bg-pink">
+        <!-- SBP method temporarily disabled -->
+        <div class="donate-method donate-alerts disabled" tabindex="-1">
+          <div class="donate-icon bg-gray">
             <img src="/src/assets/icons/donation-alerts.svg" :alt="t('donate.sbpAlt')" />
           </div>
           <div class="donate-info">
-            <div class="donate-method-title pink">{{ t('donate.sbpTitle') }}</div>
-            <div class="donate-method-desc pink">{{ t('donate.sbpDesc') }}</div>
+            <div class="donate-method-title gray">{{ t('donate.sbpTitle') }} ({{ t('donate.temporarilyDisabled') }})</div>
+            <div class="donate-method-desc gray">{{ t('donate.sbpDesc') }}</div>
           </div>
-        </component>
+        </div>
         <!-- DonationAlerts -->
         <a class="donate-method donate-donationalerts" tabindex="0"
           href="https://www.donationalerts.com/c/nyades" target="_blank" rel="noopener noreferrer">
@@ -174,6 +172,10 @@ $donate-orange-light: (
   #FBBF24,
   18%
 );
+$donate-gray-light: (
+  #9CA3AF,
+  18%
+);
 
 .donate-container {
   min-height: 100vh;
@@ -281,6 +283,12 @@ $donate-orange-light: (
     background: linear-gradient(90deg, rgba(#FBBF24, 0.18) 0%, rgba(#FBBF24, 0.07) 100%);
   }
 
+  &.disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+    background: linear-gradient(90deg, rgba(#6B7280, 0.18) 0%, rgba(#6B7280, 0.07) 100%);
+  }
+
   &:hover,
   &:focus {
     transform: translateY(-2px) scale(1.025);
@@ -314,6 +322,12 @@ $donate-orange-light: (
     }
   }
 
+  &.disabled:hover,
+  &.disabled:focus {
+    transform: none;
+    background: linear-gradient(90deg, rgba(#6B7280, 0.18) 0%, rgba(#6B7280, 0.07) 100%);
+  }
+
   .donate-info {
     display: flex;
     flex-direction: column;
@@ -345,6 +359,10 @@ $donate-orange-light: (
       &.orange {
         color: $donate-orange-light;
       }
+
+      &.gray {
+        color: $donate-gray-light;
+      }
     }
 
     .donate-method-desc {
@@ -371,6 +389,10 @@ $donate-orange-light: (
 
       &.orange {
         color: $donate-orange-light;
+      }
+
+      &.gray {
+        color: $donate-gray-light;
       }
 
       opacity: 0.7;
@@ -407,6 +429,10 @@ $donate-orange-light: (
 
 .bg-orange {
   background: rgba(251, 191, 36, 0.10);
+}
+
+.bg-gray {
+  background: rgba(107, 114, 128, 0.10);
 }
 
 .donate-icon img {

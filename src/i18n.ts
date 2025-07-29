@@ -52,7 +52,8 @@ const messages: Record<string, Record<string, string | Record<string, string>>> 
       donationAlertsAlt: 'DonationAlerts',
       donationAlerts: 'DonationAlerts',
       donationAlertsDesc: 'Support via DonationAlerts',
-      thankYou: 'Thank you for your support!'
+      thankYou: 'Thank you for your support!',
+      temporarilyDisabled: 'temporarily disabled'
     },
     contactMe: 'Contact Me',
     getInTouch: 'Get in touch with Nyades',
@@ -120,7 +121,8 @@ const messages: Record<string, Record<string, string | Record<string, string>>> 
       donationAlertsAlt: 'DonationAlerts',
       donationAlerts: 'DonationAlerts',
       donationAlertsDesc: 'Поддержать через DonationAlerts',
-      thankYou: 'Спасибо за вашу поддержку!'
+      thankYou: 'Спасибо за вашу поддержку!',
+      temporarilyDisabled: 'временно недоступно'
     },
     contactMe: 'Связаться со мной',
     getInTouch: 'Связь с Nyades',
@@ -187,7 +189,8 @@ const messages: Record<string, Record<string, string | Record<string, string>>> 
       donationAlertsAlt: 'DonationAlerts',
       donationAlerts: 'DonationAlerts',
       donationAlertsDesc: '通过DonationAlerts支持',
-      thankYou: '感谢您的支持！'
+      thankYou: '感谢您的支持！',
+      temporarilyDisabled: '暂时不可用'
     },
     contactMe: '联系我',
     getInTouch: '联系Nyades',

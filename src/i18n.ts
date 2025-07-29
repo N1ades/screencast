@@ -49,6 +49,9 @@ const messages: Record<string, Record<string, string | Record<string, string>>> 
       alipayZh: '支付宝',
       alipayQrAlt: 'Alipay QR code',
       sbpQrAlt: 'SBP QR code',
+      donationAlertsAlt: 'DonationAlerts',
+      donationAlerts: 'DonationAlerts',
+      donationAlertsDesc: 'Support via DonationAlerts',
       thankYou: 'Thank you for your support!'
     },
     contactMe: 'Contact Me',
@@ -114,6 +117,9 @@ const messages: Record<string, Record<string, string | Record<string, string>>> 
       alipayZh: '支付宝',
       alipayQrAlt: 'QR-код Alipay',
       sbpQrAlt: 'QR-код СБП',
+      donationAlertsAlt: 'DonationAlerts',
+      donationAlerts: 'DonationAlerts',
+      donationAlertsDesc: 'Поддержать через DonationAlerts',
       thankYou: 'Спасибо за вашу поддержку!'
     },
     contactMe: 'Связаться со мной',
@@ -178,6 +184,9 @@ const messages: Record<string, Record<string, string | Record<string, string>>> 
       alipayZh: '支付宝',
       alipayQrAlt: '支付宝二维码',
       sbpQrAlt: 'SBP二维码',
+      donationAlertsAlt: 'DonationAlerts',
+      donationAlerts: 'DonationAlerts',
+      donationAlertsDesc: '通过DonationAlerts支持',
       thankYou: '感谢您的支持！'
     },
     contactMe: '联系我',
@@ -242,6 +251,9 @@ const messages: Record<string, Record<string, string | Record<string, string>>> 
       alipayZh: '支付宝',
       alipayQrAlt: 'AlipayQRコード',
       sbpQrAlt: 'SBP QRコード',
+      donationAlertsAlt: 'DonationAlerts',
+      donationAlerts: 'DonationAlerts',
+      donationAlertsDesc: 'DonationAlertsで支援',
       thankYou: 'ご支援ありがとうございます！'
     },
     contactMe: 'お問い合わせ',
